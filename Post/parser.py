@@ -20,7 +20,10 @@ class Parser:
 
     def parse(self, host):
         build_fails_logged = []
-        jsondata = json.loads(self.data)
+        try:
+            jsondata = json.loads(self.data)
+        except:
+             return  { 'error' : 'Invalid json' }
 
         MACHINE_NAME = str(jsondata['machine'])
         NATIVELSBSTRING = str(jsondata['nativelsb'])
