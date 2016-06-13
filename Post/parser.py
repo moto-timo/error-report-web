@@ -40,6 +40,7 @@ class Parser:
         if self.contains_tags(jsondata) == True:
             return  { 'error' : 'Invalid characters in json' }
 
+        error_desc = ""
         b = Build.objects.create()
         try:
             b.MACHINE = str(jsondata['machine'])
@@ -52,6 +53,12 @@ class Parser:
             b.NAME = str(jsondata['username'])
             b.EMAIL = str(jsondata['email'])
             b.LINK_BACK = jsondata.get("link_back", None)
+
+            error_type = jsondata.get("error_type", None) or 'R'
+            if not Build.error_type_is_supported(error_type):
+                error_desc = "Unsupported error_type %s" % error_type
+                raise ""
+            b.ERROR_TYPE = error_type
 
             # Extract the branch and commit
             g = re.match(r'(.*): (.*)', jsondata['branch_commit'])
@@ -68,7 +75,7 @@ class Parser:
             b.save()
             failures = jsondata['failures']
         except:
-            return { 'error' : "Problem reading json payload" }
+            return { 'error' : "Problem reading json payload, %s" % error_desc }
 
         for fail in failures:
             if len(fail) > int(settings.MAX_UPLOAD_SIZE):

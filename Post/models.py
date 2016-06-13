@@ -20,6 +20,14 @@ class Build(models.Model):
             ('O', 'OE selftest'),
     )
 
+    @staticmethod
+    def error_type_is_supported(error_type):
+        for choice in Build.ERROR_TYPE_CHOICES:
+            if choice[0] == error_type:
+                return True
+
+        return False
+
     DATE = models.DateTimeField('Submit date', blank=True, null=True)
     MACHINE = models.CharField(max_length=50)
     BRANCH = models.CharField(max_length=200)
@@ -32,7 +40,8 @@ class Build(models.Model):
     NAME = models.CharField(max_length=50)
     EMAIL = models.CharField(max_length=50)
     LINK_BACK = models.TextField(max_length=300, blank=True, null=True)
-    ERROR_TYPE = models.CharField(max_length=2, choices=ERROR_TYPE_CHOICES, default='R')
+    ERROR_TYPE = models.CharField(max_length=2,
+            choices=ERROR_TYPE_CHOICES, default='R')
 
 class BuildFailure(models.Model):
     TASK = models.CharField(max_length=1024)
