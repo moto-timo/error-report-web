@@ -28,6 +28,22 @@ class Build(models.Model):
 
         return False
 
+    @staticmethod
+    def get_error_type(error_type_desc):
+        for choice in Build.ERROR_TYPE_CHOICES:
+            if choice[1] == error_type_desc:
+                return choice[0]
+
+        return None
+
+    @staticmethod
+    def get_error_type_desc(error_type):
+        for choice in Build.ERROR_TYPE_CHOICES:
+            if choice[0] == error_type:
+                return choice[1]
+
+        return None
+
     DATE = models.DateTimeField('Submit date', blank=True, null=True)
     MACHINE = models.CharField(max_length=50)
     BRANCH = models.CharField(max_length=200)
