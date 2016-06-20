@@ -45,7 +45,7 @@ class Build(models.Model):
             default=ErrorType.RECIPE)
 
     def save(self, *args, **kwargs):
-        if self.ERROR_TYPE not in [e_type[0] for e_type in self.ERROR_TYPES]:
+        if self.ERROR_TYPE not in [e_type[0] for e_type in self.ERROR_TYPE_CHOICES]:
             raise InvalidErrorType("Error type %s is not known" %
                     self.ERROR_TYPE)
 

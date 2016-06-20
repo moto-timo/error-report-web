@@ -53,7 +53,7 @@ class Parser:
             b.EMAIL = str(jsondata['email'])
             b.LINK_BACK = jsondata.get("link_back", None)
 
-            error_type = jsondata.get("error_type", ErrorType.RECIPE) 
+            b.ERROR_TYPE = jsondata.get("error_type", ErrorType.RECIPE)
 
             # Extract the branch and commit
             g = re.match(r'(.*): (.*)', jsondata['branch_commit'])
