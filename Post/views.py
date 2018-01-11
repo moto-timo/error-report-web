@@ -22,6 +22,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 import json
 import urllib
+from urlparse import urlparse
 
 class results_mode(object):
     LATEST = 0
@@ -256,9 +257,20 @@ def search(request, mode=results_mode.LATEST, **kwargs):
 
 def details(request, fail_id):
     try:
-      build_failure = BuildFailure.objects.get(id=fail_id)
+        build_failure = BuildFailure.objects.get(id=fail_id)
     except ObjectDoesNotExist:
-      build_failure = None
+        build_failure = None
+    try:
+        referer = urlparse(request.META['HTTP_REFERER'])
+        referer_hostname = referer.hostname
+        if referer.port:
+            referer_hostname += ":" + str(referer.port)
+        if referer_hostname != request.get_host():
+            build_failure.REFERER = 'OTHER'
+    except KeyError:
+        # There is no referer
+        build_failure.REFERER = 'NO_REFERER'
+    build_failure.save()
 
     context = {'detail' : build_failure, 'error_types' : ErrorType }
 
