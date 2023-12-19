@@ -27,7 +27,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update \
 	g++ \
 	gcc \
 	make \
-	python2 \
 	python3-pip \
 	python3-mysqldb \
 	python3-dev \
