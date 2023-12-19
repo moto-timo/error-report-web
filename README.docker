@@ -1,0 +1,9 @@
+Quick start with Docker
+=======================
+
+docker build -t robwoolley/error-report-web .
+
+docker run -i -t --rm --name error-report-web -p 5050:5000 robwoolley/error-report-web
+
+Set your browser to http://localhost:5050/
+
