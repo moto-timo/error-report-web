@@ -57,7 +57,7 @@ def addData(request, return_json=False):
             # Backward compatibility with send-error-report < 0.3
             # The json is url encoded so we need to undo this here.
             data = request.body[len('data='):]
-            data = urllib.unquote_plus(data)
+            data = urllib.parse.unquote_plus(data)
 
         p = Parser(data)
         result = p.parse(request)
