@@ -11,44 +11,49 @@
 
 from django.core.management.base import BaseCommand, CommandError
 from Post.models import Build, BuildFailure
-from optparse import make_option
 import time
 import sys
 
 class Command(BaseCommand):
     help = 'Culls the database to size in rows'
-    args = '<size>'
-    option_list = BaseCommand.option_list + (
-        make_option('-i',
-                    '--info',
-                    dest='info',
-                    action="store_true",
-                    help='Show the current database size'),
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument("-s", "--size", action='store', type=int, default=-1)
+        parser.add_argument(
+            '-i',
+            '--info',
+            dest='info',
+            action='store_true',
+            help='Show the current database size')
 
     def handle(self, *args, **options):
         count = Build.objects.count()
 
         if options['info']:
-            print "Current builds table size: %d" % Build.objects.count()
+            print("Current builds table size: %d" % Build.objects.count())
             return
 
-        if len(args) > 0 and args[0]:
+        if options['size'] >= 0:
             try:
-                new_size = int(args[0])
+                new_size = int(options['size'])
             except ValueError:
-                print "Not a valid size"
+                print("Not a valid size")
                 return
 
 
             num_to_delete = count - new_size
-            print "\nReducing the database size to %d which will DELETE %d rows" % (new_size, num_to_delete)
-            i = 1
-            while i != 0:
-                i = i-1
-                print 'Ctrl+c TO CANCEL. Executing in... %d \r' % i,
-                sys.stdout.flush()
-                time.sleep(1)
+            print("\nReducing the database size to %d which will DELETE %d rows" % (new_size, num_to_delete))
+            countdown = 5
+            try:
+                while True:
+                    print('Ctrl+c TO CANCEL. Executing in... %d' % countdown, end='\r'),
+                    sys.stdout.flush()
+                    time.sleep(1)
+                    if countdown == 0:
+                        break
+                    countdown = countdown-1
+            except KeyboardInterrupt:
+                sys.exit()
 
             q = Build.objects.all()[:num_to_delete].values_list('pk',
                                                                 flat=True)
