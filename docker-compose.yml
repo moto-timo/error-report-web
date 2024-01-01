@@ -1,0 +1,125 @@
+services:
+  errorsdb:
+    image: mariadb:lts
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --wait_timeout=28800 --max_allowed_packet=128M
+    environment:
+      MYSQL_DATABASE: errorsdb
+      MARIADB_DATABASE: errorsdb
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_pass
+      MARIADB_USER: errors
+      MARIADB_PASSWORD_FILE: /run/secrets/db_user_pass
+    secrets:
+      - db_root_pass
+      - db_user_pass
+    restart: unless-stopped
+  errorsapp:
+    depends_on:
+      - errorsdb
+    build: .
+    image: yoctoproject/error-report-app
+    hostname: localhost
+    volumes:
+      - errorsmeta:/opt/workdir
+      - logvolume:/opt/error-report-task-logs:z
+    environment:
+      SECRET_KEY: /run/secrets/secret_key
+      DATABASE_USER: errors
+      DATABASE_PASSWORD_FILE: /run/secrets/db_user_pass
+      DATABASE_HOST: errorsdb
+      RABBITMQ_DEFAULT_USER: errors
+      RABBITMQ_DEFAULT_PASS_FILE: /run/secrets/rmq_default_pass
+      #EMAIL_HOST: <set this here>
+      #EMAIL_PORT: <set this here if not the default>
+      #EMAIL_USER: <set this here if needed>
+      #EMAIL_PASSWORD_FILE: /run/secrets/email_pass
+      #EMAIL_USE_SSL: <set this here if needed>
+      #EMAIL_USE_TLS: <set this here if needed>
+      #DEBUG: True
+    secrets:
+      - secret_key
+      - db_user_pass
+      - rmq_default_pass
+      - email_pass
+    restart: unless-stopped
+  errorsweb:
+    depends_on:
+      - errorsapp
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: yoctoproject/error-report-web
+    hostname: localhost
+    ports:
+      - "8080:80"
+      - "8081:443"
+      ## For production you want these instead
+      # - "80:80"
+      # - "443:443"
+    volumes:
+      - errorsstatic:/usr/share/nginx/html
+      - ./docker/certs:/opt/cert
+      - certbotwww:/var/www/certbot:z
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    restart: unless-stopped
+# errorsrabbit:
+#   image: rabbitmq:alpine
+#   restart: unless-stopped
+#   environment:
+#     RABBITMQ_DEFAULT_USER: errors
+#     RABBITMQ_DEFAULT_PASS_FILE: /run/secrets/rmq_default_pass
+#   secrets:
+#     - rmq_default_pass
+# errorscelery:
+#   depends_on:
+#     - errorsdb
+#     - errorsapp
+#     - errorsrabbit
+#   image: yoctoproject/error-report-app
+#   volumes:
+#     - errorsmeta:/opt/workdir
+#     - logvolume:/opt/error-report-task-logs:z
+#   environment:
+#     SECRET_KEY: /run/secrets/secret_key
+#     DATABASE_USER: errors
+#     DATABASE_PASSWORD_FILE: /run/secrets/db_user_pass
+#     DATABASE_HOST: errorsdb
+#     RABBITMQ_DEFAULT_USER: errors
+#     RABBITMQ_DEFAULT_PASS_FILE: /run/secrets/rmq_default_pass
+      #EMAIL_HOST: <set this here>
+      #EMAIL_PORT: <set this here if not the default>
+      #EMAIL_USER: <set this here if needed>
+      #EMAIL_PASSWORD_FILE: /run/secrets/email_pass
+      #EMAIL_USE_SSL: <set this here if needed>
+      #EMAIL_USE_TLS: <set this here if needed>
+      #DEBUG: True
+#   secrets:
+#     - secret_key
+#     - db_user_pass
+#     - rmq_default_pass
+#     - email_pass
+#   restart: unless-stopped
+#   command: /usr/local/bin/celery --workdir=/opt/error-report --app error-report.tasks worker --loglevel=INFO
+  #errorscertbot:
+  #  image: certbot/certbot
+  #  volumes:
+  #    - ./docker/certs:/opt/cert
+  #    - certbotwww:/var/www/certbot:z
+  #  entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  errorsmeta:
+  errorsstatic:
+  logvolume:
+  certbotwww:
+
+secrets:
+  secret_key:
+    file: ./secrets/secret_key.txt
+  db_root_pass:
+    file: ./secrets/db_root_pass.txt
+  db_user_pass:
+    file: ./secrets/db_user_pass.txt
+  rmq_default_pass:
+    file: ./secrets/rmq_default_pass.txt
+  email_pass:
+    file: ./secrets/email_pass.txt
