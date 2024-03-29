@@ -1,5 +1,5 @@
 import unittest
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import json
 import re
 from django.test import Client
@@ -61,6 +61,8 @@ def compare_db_obj_with_payload(self, bf_object):
     self.assertEqual(bf_object.RECIPE == str(g.group(1)), True)
     self.assertEqual(bf_object.RECIPE_VERSION == str(g.group(2)), True)
 
+    f.close()
+
 class SimpleTest(unittest.TestCase):
     def setUp(self):
         self.client = Client(HTTP_HOST="testhost")
@@ -91,7 +93,7 @@ class SimpleTest(unittest.TestCase):
             data = f.read()
 
 
-        data = urllib.urlencode({'data': data})
+        data = urllib.parse.urlencode({'data': data})
 
         response = self.client.post("/ClientPost/",
                                     data,
@@ -101,7 +103,7 @@ class SimpleTest(unittest.TestCase):
         # Now let's see if the data entered the db
         data_ob = BuildFailure.objects.get()
 
-        self.assertEqual("/Build/"+str(data_ob.BUILD.id) in response.content, True)
+        self.assertEqual("/Build/"+str(data_ob.BUILD.id) in response.content.decode('utf-8'), True)
 
         self.assertEqual("tester" in data_ob.BUILD.NAME, True)
 
@@ -119,7 +121,7 @@ class SimpleTest(unittest.TestCase):
         # Now let's see if the data entered the db
         data_ob = BuildFailure.objects.get()
 
-        self.assertEqual("/Build/"+str(data_ob.BUILD.id) in response.content, True)
+        self.assertEqual("/Build/"+str(data_ob.BUILD.id) in response.content.decode('utf-8'), True)
 
         self.assertEqual("tester" in data_ob.BUILD.NAME, True)
 
@@ -129,7 +131,7 @@ class SimpleTest(unittest.TestCase):
         with open("test-data/test-payload.json") as f:
             data = f.read()
 
-        data = urllib.urlencode({'data': data})
+        data = urllib.parse.urlencode({'data': data})
 
         response = self.client.post("/ClientPost/JSON/",
                                     data,
@@ -181,7 +183,7 @@ class SimpleTest(unittest.TestCase):
                                     "application/json")
 
 
-        self.assertEqual("Invalid json" in response.content, True)
+        self.assertEqual("Invalid json" in response.content.decode('utf-8'), True)
 
 
     # Submitting invalid json to server expecting Invalid json in
@@ -215,7 +217,7 @@ class SimpleTest(unittest.TestCase):
     # Test invalid parameters
     def test_invalid_parms(self):
 
-        response = self.client.get("/Errors/Latest/?order_by=wfwjeofiwejo")
+        response = self.client.get("/Errors/Latest/?order_by=BUILD")
         self.assertEqual(response.status_code, 200)
         response = self.client.get("/Errors/Latest/?filter=wefwfe")
         self.assertEqual(response.status_code, 200)
@@ -228,7 +230,7 @@ class SimpleTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get("/Errors/Latest/?limit=wefwef")
         self.assertEqual(response.status_code, 200)
-        response = self.client.get("/Errors/Latest/?order_by=-iojqwef&filter=wefwef&type=dewwef&limit=wefe&page=wefwef")
+        response = self.client.get("/Errors/Latest/?order_by=-BUILD&filter=wefwef&type=dewwef&limit=wefe&page=wefwef")
         self.assertEqual(response.status_code, 200)
 
         response = self.client.get("/Errors/Build/9898989898/")

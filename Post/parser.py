@@ -13,12 +13,12 @@ import bleach
 from Post.models import Build, BuildFailure, ErrorType
 from django.conf import settings
 from django.utils import timezone
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 class Parser:
 
     def __init__(self, data):
-        self.data = data.decode('utf-8')
+        self.data = data
 
     def parse(self, request):
         build_fails_logged = []
@@ -66,7 +66,7 @@ class Parser:
             b.save()
             failures = jsondata['failures']
         except Exception as e:
-            return { 'error' : "Problem reading json payload, %s" % e.message }
+            return { 'error' : "Problem reading json payload, %s" % str(e) }
 
         f = None
         for fail in failures:
@@ -84,7 +84,7 @@ class Parser:
                 recipe = package
                 recipe_version = "unknown"
 
-            f = BuildFailure(TASK = str(fail['task']), RECIPE = recipe, RECIPE_VERSION = recipe_version, ERROR_DETAILS = fail['log'].encode('utf-8'), BUILD = b)
+            f = BuildFailure(TASK = str(fail['task']), RECIPE = recipe, RECIPE_VERSION = recipe_version, ERROR_DETAILS = fail['log'].encode('utf-8').decode('utf-8'), BUILD = b)
 
             f.save()
 
