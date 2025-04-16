@@ -68,6 +68,7 @@ class Parser:
         except Exception as e:
             return { 'error' : "Problem reading json payload, %s" % e.message }
 
+        f = None
         for fail in failures:
             if len(fail) > int(settings.MAX_UPLOAD_SIZE):
                 build_fails_logged.append({ 'id': -1, 'error' : "The size of the upload is too large" })
@@ -95,7 +96,10 @@ class Parser:
 
         build_url = request.build_absolute_uri(reverse('build_errors', args=[b.id]))
 
-        num_similar_errors = f.get_similar_fails_count()
+        if f is not None:
+            num_similar_errors = f.get_similar_fails_count()
+        else:
+            num_similar_errors = 0
 
         result = { 'build_id' : b.id,
                    'build_url' : build_url,
