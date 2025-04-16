@@ -23,6 +23,7 @@ from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.http import JsonResponse
 from django.db.models import Q
 import json
+import re
 import urllib
 from urllib.parse import urlparse
 
@@ -51,7 +52,9 @@ def addData(request, return_json=False):
     if request.method == 'POST':
         user_agent = request.META.get("HTTP_USER_AGENT", "")
 
-        if "send-error-report/0.3" in user_agent:
+        version = re.search(r"send-error-report/(\d+\.\d+)", user_agent).group(1)
+        version_parts = [int(part) for part in version.split('.')]
+        if version_parts >= [0, 3]:
             data = request.body
         else:
             # Backward compatibility with send-error-report < 0.3
