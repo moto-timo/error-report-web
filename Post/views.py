@@ -52,9 +52,13 @@ def addData(request, return_json=False):
     if request.method == 'POST':
         user_agent = request.META.get("HTTP_USER_AGENT", "")
 
-        version = re.search(r"send-error-report/(\d+\.\d+)", user_agent).group(1)
-        version_parts = [int(part) for part in version.split('.')]
-        if version_parts >= [0, 3]:
+        version = None
+        version_parts = None
+        m = re.search(r"send-error-report/(\d+\.\d+)", user_agent)
+        if m:
+            version = m.group(1)
+            version_parts = [int(part) for part in version.split('.')]
+        if version_parts and version_parts >= [0, 3]:
             data = request.body
         else:
             # Backward compatibility with send-error-report < 0.3
