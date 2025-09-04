@@ -1,4 +1,4 @@
-Django
+Django<4.3
 python-Levenshtein
 bleach
 mysqlclient
