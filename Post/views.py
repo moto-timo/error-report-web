@@ -19,7 +19,7 @@ from Post.parser import Parser
 from django.conf import settings
 from Post.createStatistics import Statistics
 from django.core.paginator import Paginator, EmptyPage
-from django.core.exceptions import FieldError, ObjectDoesNotExist
+from django.core.exceptions import FieldError, ObjectDoesNotExist, RequestDataTooBig
 from django.http import JsonResponse
 from django.db.models import Q
 import json
@@ -59,7 +59,11 @@ def addData(request, return_json=False):
             version = m.group(1)
             version_parts = [int(part) for part in version.split('.')]
         if version_parts and version_parts >= [0, 3]:
-            data = request.body
+            try:
+                data = request.body
+            except RequestDataTooBig:
+                response = HttpResponse("Request content is too big", status=413)
+                return response
         else:
             # Backward compatibility with send-error-report < 0.3
             # The json is url encoded so we need to undo this here.
