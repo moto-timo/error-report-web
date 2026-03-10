@@ -57,7 +57,7 @@ class Build(models.Model):
         super(Build, self).save(*args, **kwargs)
 
 class BuildFailure(models.Model):
-    TASK = models.CharField(max_length=1024)
+    TASK = models.CharField(max_length=750)
     RECIPE= models.CharField(max_length=250)
     RECIPE_VERSION = models.CharField(max_length=200)
     ERROR_DETAILS = models.TextField(max_length=int(settings.MAX_UPLOAD_SIZE))
@@ -73,6 +73,11 @@ class BuildFailure(models.Model):
             choices = REFERER_CHOICES,
             default = 'NOT_VISITED'
     )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['TASK', 'LEV_DISTANCE'], name='idx_task_lev'),
+        ]
 
     def get_similar_fails(self):
         if self.LEV_DISTANCE is None:
