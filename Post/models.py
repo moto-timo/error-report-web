@@ -48,6 +48,11 @@ class Build(models.Model):
     ERROR_TYPE = models.CharField(max_length=20, choices=ERROR_TYPE_CHOICES,
                                   default=ErrorType.RECIPE)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['DATE'], name='idx_date'),
+        ]
+
     def save(self, *args, **kwargs):
         if self.ERROR_TYPE not in [e_type[0] for e_type in
                                    self.ERROR_TYPE_CHOICES]:
