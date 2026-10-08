@@ -3,8 +3,13 @@ import re
 from django import template
 from django.utils import timezone
 from django.template.defaultfilters import filesizeformat
+from Post.validators import clean_link_back
 
 register = template.Library()
+
+@register.filter(name = 'safe_url')
+def safe_url(value):
+    return clean_link_back(value) or ''
 
 @register.filter(name = 'sortcols')
 def sortcols(tablecols):

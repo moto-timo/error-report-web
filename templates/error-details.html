@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load projecttags %}
 {% block content %}
 <div class="row-fluid">
 
@@ -67,7 +68,7 @@
 
         {% if detail.BUILD.LINK_BACK %}
         <dt>Link back:</dt>
-        <dd><a href="{{detail.BUILD.LINK_BACK}}" target="_blank">{{detail.BUILD.LINK_BACK}}</a></dd>
+        <dd><a href="{{detail.BUILD.LINK_BACK|safe_url}}" target="_blank" rel="nofollow noopener noreferrer">{{detail.BUILD.LINK_BACK}}</a></dd>
         {% endif %}
 
         <dt></a>Similar errors:</dt>
