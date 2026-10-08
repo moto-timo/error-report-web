@@ -65,6 +65,11 @@ def compare_db_obj_with_payload(self, bf_object):
 
 class SimpleTest(unittest.TestCase):
     def setUp(self):
+        # The test clients submit with HTTP_HOST="testhost", so allow it here
+        # instead of hardcoding a test host into the project settings.
+        override = override_settings(ALLOWED_HOSTS=["testhost"])
+        override.enable()
+        self.addCleanup(override.disable)
         self.client = Client(HTTP_HOST="testhost")
         self.client_0_3 = Client(HTTP_HOST="testhost", HTTP_USER_AGENT="send-error-report/0.3")
 
