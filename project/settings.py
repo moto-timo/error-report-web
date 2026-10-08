@@ -48,6 +48,28 @@ MAX_UPLOAD_SIZE = "5242880"
 # Tolerance value to determine the distance between similar errors
 SIMILAR_FAILURE_DISTANCE = 10
 
+# Content Security Policy sent with every response by
+# Post.middleware.ContentSecurityPolicyMiddleware. Each directive maps to a
+# list of sources. All scripts, styles, fonts and images are served locally,
+# so no inline scripts or style attributes are allowed. Set to None to
+# disable the header.
+CONTENT_SECURITY_POLICY = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'"],
+    'style-src': ["'self'"],
+    'img-src': ["'self'", "data:"],
+    'font-src': ["'self'"],
+    'connect-src': ["'self'"],
+    'object-src': ["'none'"],
+    'base-uri': ["'self'"],
+    'form-action': ["'self'"],
+    'frame-ancestors': ["'none'"],
+}
+
+# Send the policy as Content-Security-Policy-Report-Only so violations are
+# reported by browsers but not blocked. Useful when changing the policy.
+CONTENT_SECURITY_POLICY_REPORT_ONLY = False
+
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -120,6 +142,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'Post.middleware.ContentSecurityPolicyMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

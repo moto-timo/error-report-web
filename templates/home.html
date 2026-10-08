@@ -8,13 +8,13 @@
             <ul class="thumbnails">
               <li class="span6">
                 <h2>By machine</h2>
-                <div class="thumbnail" id="MACHINE">
+                <div class="thumbnail" id="MACHINE" data-stats-url="{% url "statistics" "MACHINE" %}">
 
                 </div>
               </li>
               <li class="span6">
                 <h2>By recipe</h2>
-                <div class="thumbnail" id="RECIPE">
+                <div class="thumbnail" id="RECIPE" data-stats-url="{% url "statistics" "RECIPE" %}">
                 </div>
               </li>
             </ul>
@@ -23,12 +23,12 @@
             <ul class="thumbnails">
               <li class="span6">
                 <h2>By target</h2>
-                <div class="thumbnail" id="TARGET">
+                <div class="thumbnail" id="TARGET" data-stats-url="{% url "statistics" "TARGET" %}">
                 </div>
               </li>
               <li class="span6">
                 <h2>By distro</h2>
-                <div class="thumbnail" id="DISTRO">
+                <div class="thumbnail" id="DISTRO" data-stats-url="{% url "statistics" "DISTRO" %}">
                 </div>
               </li>
             </ul>
@@ -37,12 +37,12 @@
             <ul class="thumbnails">
               <li class="span6">
                 <h2>By branch</h2>
-                <div class="thumbnail" id="BRANCH">
+                <div class="thumbnail" id="BRANCH" data-stats-url="{% url "statistics" "BRANCH" %}">
                 </div>
               </li>
               <li class="span6">
                 <h2>By commit</h2>
-                <div class="thumbnail" id="COMMIT">
+                <div class="thumbnail" id="COMMIT" data-stats-url="{% url "statistics" "COMMIT" %}">
                 </div>
               </li>
             </ul>
@@ -51,52 +51,16 @@
             <ul class="thumbnails">
               <li class="span6">
                 <h2>By target system</h2>
-                <div class="thumbnail" id="TARGET_SYS">
+                <div class="thumbnail" id="TARGET_SYS" data-stats-url="{% url "statistics" "TARGET_SYS" %}">
                 </div>
               </li>
               <li class="span6">
                 <h2>By host distro</h2>
-                <div class="thumbnail" id="NATIVELSBSTRING">
+                <div class="thumbnail" id="NATIVELSBSTRING" data-stats-url="{% url "statistics" "NATIVELSBSTRING" %}">
                 </div>
               </li>
             </ul>
           </div>
-          <script type="text/javascript">
-            $(document).ready(function () {
-              $.get('{% url "statistics" "MACHINE" %}', function(data){
-                $("#MACHINE").append (data);
-              });
-
-              $.get('{% url "statistics" "RECIPE" %}', function(data){
-                $("#RECIPE").append (data);
-              });
-
-              $.get('{% url "statistics" "TARGET" %}', function(data){
-                $("#TARGET").append (data);
-              });
-
-              $.get('{% url "statistics" "DISTRO" %}', function(data){
-                $("#DISTRO").append (data);
-              });
-
-              $.get('{% url "statistics" "BRANCH" %}', function(data){
-                $("#BRANCH").append (data);
-              });
-
-              $.get('{% url "statistics" "COMMIT" %}', function(data){
-                $("#COMMIT").append (data);
-              });
-
-              $.get('{% url "statistics" "TARGET_SYS" %}', function(data){
-                $("#TARGET_SYS").append (data);
-              });
-
-              $.get('{% url "statistics" "NATIVELSBSTRING" %}', function(data){
-                $("#NATIVELSBSTRING").append (data);
-              });
-
-            }); /* End onLoad */
-          </script>
 
         </div>
       </div>   <!-- end of tab-content -->

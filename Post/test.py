@@ -2,7 +2,7 @@ import unittest
 import urllib.request, urllib.parse, urllib.error
 import json
 import re
-from django.test import Client
+from django.test import Client, override_settings
 from Post.models import BuildFailure, Build
 
 #Delete the data between tests
@@ -241,3 +241,62 @@ class SimpleTest(unittest.TestCase):
 
         response = self.client.get("/Errors/Details/9898989898/")
         self.assertEqual(response.status_code, 200)
+
+class CSPTest(unittest.TestCase):
+    def setUp(self):
+        self.client = Client(HTTP_HOST="testhost")
+
+    def test_csp_header(self):
+        for url in ('/Statistics/', '/Errors/Latest/'):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            csp = response['Content-Security-Policy']
+            self.assertIn("script-src 'self'", csp)
+            self.assertIn("style-src 'self'", csp)
+            self.assertIn("object-src 'none'", csp)
+            self.assertNotIn("unsafe-inline", csp)
+            self.assertNotIn("unsafe-eval", csp)
+
+    def test_csp_report_only(self):
+        with override_settings(CONTENT_SECURITY_POLICY_REPORT_ONLY=True):
+            # New client so the middleware picks up the setting
+            response = Client(HTTP_HOST="testhost").get('/Statistics/')
+        self.assertIn('Content-Security-Policy-Report-Only', response)
+        self.assertNotIn('Content-Security-Policy', response)
+
+    def test_csp_disabled(self):
+        with override_settings(CONTENT_SECURITY_POLICY=None):
+            response = Client(HTTP_HOST="testhost").get('/Statistics/')
+        self.assertNotIn('Content-Security-Policy', response)
+
+    def test_no_inline_script_or_style(self):
+        Build.objects.all().delete()
+
+        with open("test-data/test-payload.json") as f:
+            data = urllib.parse.urlencode({'data': f.read()})
+        response = self.client.post("/ClientPost/", data, "application/json")
+        self.assertEqual(response.status_code, 200)
+
+        build = Build.objects.get()
+        failure = BuildFailure.objects.get()
+        urls = ['/Statistics/',
+                '/Errors/Statistics/MACHINE/',
+                '/Errors/Latest/',
+                '/Errors/Build/%d/' % build.id,
+                '/Errors/Details/%d/' % failure.id]
+
+        for url in urls:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            content = response.content.decode('utf-8')
+            self.assertIsNone(re.search(r'\sstyle\s*=', content), url)
+            # Only external scripts and non-executed JSON data are allowed
+            for script in re.findall(r'<script[^>]*>', content):
+                self.assertTrue(re.search(r'\ssrc\s*=', script) or
+                                'type="application/json"' in script,
+                                "%s: %s" % (url, script))
+
+        response = self.client.get('/Errors/Statistics/MACHINE/')
+        self.assertIn(build.MACHINE, response.content.decode('utf-8'))
+
+        Build.objects.all().delete()

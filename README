@@ -38,6 +38,41 @@ In order to send an error report to the server, run the "send-error-report file_
 
 For more information on error reporting and log collection see: http://www.yoctoproject.org/docs/current/dev-manual/dev-manual.html#using-the-error-reporting-tool
 
+Content Security Policy
+-----------------------
+
+Every response carries a Content-Security-Policy header, added by
+Post.middleware.ContentSecurityPolicyMiddleware. The default policy in
+settings.py only allows resources served by the application itself:
+
+  default-src 'self'; script-src 'self'; style-src 'self';
+  img-src 'self' data:; font-src 'self'; connect-src 'self';
+  object-src 'none'; base-uri 'self'; form-action 'self';
+  frame-ancestors 'none'
+
+Inline scripts, inline event handlers (onclick=...), style attributes and
+eval() are blocked. When changing templates put JavaScript in
+Post/static/js/main.js and CSS in Post/static/css/custom.css. To pass data
+from a view to JavaScript use the json_script template filter or data-*
+attributes.
+
+The policy is configured with CONTENT_SECURITY_POLICY, a dict mapping each
+directive to a list of sources. For example, to also load images from a CDN
+and have browsers report violations:
+
+  CONTENT_SECURITY_POLICY['img-src'] = ["'self'", "data:", "https://cdn.example.com"]
+  CONTENT_SECURITY_POLICY['report-uri'] = ["https://example.com/csp-report"]
+
+Set CONTENT_SECURITY_POLICY = None to disable the header. Set
+CONTENT_SECURITY_POLICY_REPORT_ONLY = True to send the policy as
+Content-Security-Policy-Report-Only, so violations are reported but not
+blocked; this is useful when trying out a policy change. With the docker
+setup set CSP_REPORT_ONLY=1 in .env to do the same.
+
+If the web server in front of Django (Apache, nginx) also sets a
+Content-Security-Policy header, browsers enforce both, so set it in one place.
+The Django admin pages may lose some minor cosmetic styling under this policy.
+
 Maintenance
 -----------
 

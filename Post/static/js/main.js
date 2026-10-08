@@ -42,7 +42,66 @@ function dumpsUrlParams(obj) {
   return str.substr(0,str.length-1);
 };
 
+/* Escape text for use in HTML strings, e.g. nvd3 tooltips which are
+ * inserted with innerHTML */
+function escapeHtml(text) {
+  return $('<div/>').text(String(text)).html();
+}
+
+/* Draw a statistics bar chart from a templates/discretebarchart.html
+ * fragment. The data is embedded as a JSON script element rather than
+ * inline JavaScript so that it works under the Content Security Policy.
+ */
+function renderDiscreteBarChart(container) {
+  var data = JSON.parse(container.find('script[type="application/json"]').text());
+  var filterUrl = container.data('filter-url');
+  var filterType = container.data('filter-type');
+
+  nv.addGraph(function() {
+    var chart = nv.models.discreteBarChart();
+
+    chart.staggerLabels(true);
+    chart.yAxis.tickFormat(d3.format(',.0f'));
+    /* Ellipsize long labels */
+    chart.xAxis.tickFormat(function(label) {
+      if (label.length >= 14)
+        return label.substring(0,13) + '\u2026';
+
+      return label;
+    });
+
+    chart.tooltipContent(function(key, x, y, e) {
+      return escapeHtml(e.point.x) + ": " + escapeHtml(e.point.y);
+    });
+
+    chart.discretebar.dispatch.on('elementClick', function(e) {
+      window.location.href = filterUrl + '?filter=' +
+        encodeURIComponent(e.point.x) + '&type=' + encodeURIComponent(filterType);
+    });
+
+    /* TODO nv.utils.windowResize(chart.update); */
+
+    d3.select(container.find('svg')[0])
+    .datum(data)
+    .transition(350)
+    .attr('height', 400)
+    .call(chart);
+  });
+}
+
 $(document).ready(function(){
+
+  /* Load the statistics charts */
+  $("[data-stats-url]").each(function () {
+    var thumbnail = $(this);
+    $.get(thumbnail.data('stats-url'), function (html) {
+      var chart = $(html).filter('.discrete-bar-chart');
+      if (chart.length == 0)
+        return;
+      thumbnail.append(chart);
+      renderDiscreteBarChart(chart);
+    });
+  });
 
   /* Use json encoding for cookie content */
   $.cookie.json = true;

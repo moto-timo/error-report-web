@@ -129,3 +129,31 @@ th a, th span {
         word-wrap: break-word;
         word-break: break-all;
 }
+
+/* Styles below replace inline style attributes, which the Content
+ * Security Policy (style-src 'self') does not allow.
+ */
+.filter.visible, .sorting-arrows.visible {
+        visibility: visible;
+}
+
+.back-btn {
+        margin-top: 7px;
+}
+
+.details-title {
+        margin-left: 60px;
+}
+
+.pagesize-label {
+        padding-top: 5px;
+}
+
+select.pagesize {
+        margin-top: 5px;
+        margin-bottom: 0px;
+}
+
+.chart-svg {
+        height: 400px;
+}

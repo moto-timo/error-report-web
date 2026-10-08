@@ -40,8 +40,8 @@
       {% endif %}
 
       <div class="pull-right">
-        <span class="help-inline" style="padding-top:5px;">Show rows: </span>
-        <select style="margin-top:5px;margin-bottom:0px;" class="input-mini pagesize">
+        <span class="help-inline pagesize-label">Show rows: </span>
+        <select class="input-mini pagesize">
           {% with "10 25 50 100 150" as list%}
           {% for i in list.split %}
           {% if request.session.limit == i|add:0 %}
@@ -93,10 +93,10 @@
 
                   {% if request.GET.order_by == "-"|add:col.field %}
                   <a href="#" class="sort-col sorted" data-order-by="{{col.field}}" >{{col.name}}</a>
-                  <span class="sorting-arrows" style="visibility: visible">&#9650</span>
+                  <span class="sorting-arrows visible">&#9650</span>
                   {% else %}
                   <a href="#" class="sort-col sorted" data-order-by="-{{col.field}}" >{{col.name}}</a>
-                   <span class="sorting-arrows" style="visibility: visible">&#9660</span>
+                   <span class="sorting-arrows visible">&#9660</span>
                    {% endif %}
                 {% else %}
                 {# default case is sorted by submitted_on #}
@@ -105,7 +105,7 @@
 
                   {% if col.clclass == "submitted_on" and not request.GET.order_by %}
                    <a href="#" class="sort-col sorted" data-order-by="-{{col.field}}" >{{col.name}}</a>
-                   <span class="sorting-arrows" style="visibility: visible">&#9660</span>
+                   <span class="sorting-arrows visible">&#9660</span>
 
                   {% elif col.clclass == "failure" %}
                   {{col.name}}
@@ -192,7 +192,7 @@
                   <div class="btn" rel="popover"
                       data-content='
                       {{ build_fail.BUILD.COMMIT|escape}}
-                      <p><a href="#" class="filter" style="visibility: visible" data-filter="{{build_fail.BUILD.COMMIT}}" data-type="commit" >Filter by commit</a>'
+                      <p><a href="#" class="filter visible" data-filter="{{build_fail.BUILD.COMMIT}}" data-type="commit" >Filter by commit</a>'
                       data-html="true"
                     >
                     {{ build_fail.BUILD.COMMIT|truncatechars:10}}
@@ -240,8 +240,8 @@
               {%endif%}
             </ul>
             <div class="pull-right">
-              <span class="help-inline" style="padding-top:5px;">Show rows:</span>
-              <select style="margin-top:5px;margin-bottom:0px;" class="input-mini pagesize">
+              <span class="help-inline pagesize-label">Show rows:</span>
+              <select class="input-mini pagesize">
                 {% with "10 25 50 100 150" as list%}
                 {% for i in list.split %}
                 {% if request.session.limit == i|add:0 %}

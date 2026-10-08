@@ -16,12 +16,3 @@
 <p>{% trans "Forgot password" %}? <a href="{% url "auth_password_reset" %}">{% trans "Reset it" %}</a>!</p>
 <p>{% trans "Don't have an account" %}? <a href="{% url "registration_register" %}">{% trans "Create one now" %}</a>!</p>
 {% endblock %}
-
-
-{% block scripts %}
-<script>
-    $(document).ready(function() {
-        $("#login_form input:text, #login_form textarea").first().focus();
-    });
-</script>
-{% endblock %}

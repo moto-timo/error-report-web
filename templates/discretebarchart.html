@@ -1,39 +1,10 @@
-<div id="{{ chart_id }}"><svg style="height:400px;"></svg></div>
-<script type="text/javascript">
-
-var data_{{ chart_id }}=JSON.parse("{{ data|escapejs }}");
-
-nv.addGraph(function() {
-   var chart = nv.models.discreteBarChart();
-
-   chart.staggerLabels(true);
-   chart.yAxis.tickFormat(d3.format(',.0f'));
-   /* Ellipsize long labels */
-   chart.xAxis.tickFormat(function(label) {
-     if (label.length >= 14)
-       return label.tooltip = label.substring(0,13) + '…';
-
-     return label
-   });
-
-   chart.tooltipContent(function(key, y, e, graph) {
-     var x = String(graph.point.x);
-     var y = String(graph.point.y);
-
-     tooltip_str = x + ": " +y;
-     d3.selectAll('.discreteBar').on('click', function() {
-       window.location.href='{% url 'latest_errors' %}?filter='+x+'&type={{chart_id|lower}}';
-     });
-     return tooltip_str;
-   });
-
-   /* TODO nv.utils.windowResize(chart.update); */
-
-   d3.select('#{{ chart_id }} svg')
-   .datum(data_{{ chart_id }})
-   .transition(350)
-   .attr('height', 400)
-   .call(chart);
-
- });
-</script>
+{% comment %}
+Rendered by Post/static/js/main.js (renderDiscreteBarChart). No inline
+script here: the Content Security Policy only allows scripts from 'self'.
+{% endcomment %}
+<div class="discrete-bar-chart"
+     data-filter-url="{% url 'latest_errors' %}"
+     data-filter-type="{{ chart_id|lower }}">
+  {{ data|json_script }}
+  <svg class="chart-svg"></svg>
+</div>

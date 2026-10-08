@@ -296,11 +296,9 @@ def chart(request, template_name, key):
     if (alldata == {}):
         return HttpResponse("")
 
-    data = json.dumps([{ 'values': list(alldata)}])
-    # Replace MACHINE with x and dcount with value
-    # We do this in the string as it's more efficient
-    data = data.replace(key, "x")
-    data = data.replace("dcount", "y")
+    # Rename e.g. MACHINE to x and dcount to y for nvd3
+    data = [{ 'values': [{ 'x': item[key], 'y': item['dcount'] }
+                         for item in alldata] }]
 
     context = { 'data' : data,
                'chart_id': key,
