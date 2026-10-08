@@ -11,6 +11,7 @@
 import json, re
 import bleach
 from Post.models import Build, BuildFailure, ErrorType
+from Post.validators import clean_link_back
 from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
@@ -48,7 +49,7 @@ class Parser:
             b.DISTRO = str(jsondata['distro'])
             b.NAME = str(jsondata['username'])
             b.EMAIL = str(jsondata['email'])
-            b.LINK_BACK = jsondata.get("link_back", None)
+            b.LINK_BACK = clean_link_back(jsondata.get("link_back", None))
             b.ERROR_TYPE = jsondata.get("error_type", ErrorType.RECIPE)
 
             # Extract the branch and commit

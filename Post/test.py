@@ -4,6 +4,7 @@ import json
 import re
 from django.test import Client, override_settings
 from Post.models import BuildFailure, Build
+from Post.validators import clean_link_back
 
 #Delete the data between tests
 def data_runner (func):
@@ -305,3 +306,85 @@ class CSPTest(unittest.TestCase):
         self.assertIn(build.MACHINE, response.content.decode('utf-8'))
 
         Build.objects.all().delete()
+
+class LinkBackValidatorTest(unittest.TestCase):
+
+    def test_allows_http(self):
+        self.assertEqual(clean_link_back("http://example.com/build/1"),
+                         "http://example.com/build/1")
+
+    def test_allows_https(self):
+        self.assertEqual(clean_link_back("https://example.com/build/1"),
+                         "https://example.com/build/1")
+
+    def test_rejects_javascript(self):
+        self.assertIsNone(
+            clean_link_back("javascript:alert(document.domain)//PROBE"))
+
+    def test_rejects_data(self):
+        self.assertIsNone(
+            clean_link_back("data:text/html,<script>alert(1)</script>"))
+
+    def test_rejects_vbscript(self):
+        self.assertIsNone(clean_link_back("vbscript:msgbox(1)"))
+
+    def test_rejects_scheme_relative(self):
+        self.assertIsNone(clean_link_back("//evil.example.com/x"))
+
+    def test_rejects_schemeless(self):
+        self.assertIsNone(clean_link_back("example.com/build/1"))
+
+    def test_rejects_control_char_obfuscation(self):
+        self.assertIsNone(clean_link_back("java\tscript:alert(1)"))
+
+    def test_rejects_leading_whitespace(self):
+        self.assertIsNone(clean_link_back("  javascript:alert(1)"))
+
+    def test_rejects_missing_host(self):
+        self.assertIsNone(clean_link_back("http:///path"))
+
+    def test_rejects_none_empty_and_non_string(self):
+        self.assertIsNone(clean_link_back(None))
+        self.assertIsNone(clean_link_back(""))
+        self.assertIsNone(clean_link_back("   "))
+        self.assertIsNone(clean_link_back(123))
+
+
+class LinkBackSubmissionTest(unittest.TestCase):
+
+    def setUp(self):
+        # The test client submits with HTTP_HOST="testhost"; allow it here.
+        override = override_settings(ALLOWED_HOSTS=["testhost"])
+        override.enable()
+        self.addCleanup(override.disable)
+        self.client = Client(HTTP_HOST="testhost")
+        # Start from a clean slate; other unittest.TestCase tests commit rows.
+        Build.objects.all().delete()
+        BuildFailure.objects.all().delete()
+        with open("test-data/test-payload.json") as f:
+            self.base_payload = json.loads(f.read())
+
+    def tearDown(self):
+        Build.objects.all().delete()
+        BuildFailure.objects.all().delete()
+
+    def _submit(self, link_back):
+        payload = dict(self.base_payload)
+        payload['link_back'] = link_back
+        data = urllib.parse.urlencode({'data': json.dumps(payload)})
+        response = self.client.post("/ClientPost/", data, "application/json")
+        self.assertEqual(response.status_code, 200, response.content)
+        return BuildFailure.objects.get()
+
+    def test_javascript_link_back_is_blanked(self):
+        bf = self._submit("javascript:alert(document.domain)//PROBE")
+        self.assertIsNone(bf.BUILD.LINK_BACK)
+
+        response = self.client.get("/Errors/Details/%d/" % bf.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b'href="javascript:', response.content)
+
+    def test_http_link_back_is_preserved(self):
+        bf = self._submit("http://example.com/build/42")
+        self.assertEqual(bf.BUILD.LINK_BACK, "http://example.com/build/42")
+
