@@ -267,6 +267,12 @@ class CSPTest(TestCase):
             self.assertNotIn("unsafe-inline", csp)
             self.assertNotIn("unsafe-eval", csp)
 
+    def test_security_headers(self):
+        response = self.client.get('/Statistics/')
+        self.assertEqual(response['X-Frame-Options'], 'DENY')
+        self.assertEqual(response['X-Content-Type-Options'], 'nosniff')
+        self.assertEqual(response['Referrer-Policy'], 'same-origin')
+
     def test_csp_report_only(self):
         with override_settings(CONTENT_SECURITY_POLICY_REPORT_ONLY=True):
             # New client so the middleware picks up the setting
