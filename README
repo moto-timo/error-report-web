@@ -23,7 +23,10 @@ Setup instructions:
 1. Initialise and activate a python virtual environment. `virtualenv venv && source ./venv/bin/activate`
 2. Install the dependencies via `pip install -r requirements.txt`
 3. Set DATABASES.default.ENGINE in settings.py to use the database engine of your choice.
-4. Set a SECRET_KEY in settings.py
+4. Set the SECRET_KEY environment variable, for example
+   `export SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")`.
+   Set DEBUG=1 for development, and ALLOWED_HOSTS to a comma-separated list of
+   the host names the site is served as (default: localhost,127.0.0.1).
 5. Setup the database schema with the Django model. Run `python manage.py migrate`.
 
 

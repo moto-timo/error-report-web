@@ -6,7 +6,11 @@
 
 import os
 
-DEBUG = True
+# DEBUG=1 for development; off by default.
+DEBUG = os.environ.get('DEBUG', '').lower() in ('1', 'true', 'yes')
+
+# Comma-separated.
+ALLOWED_HOSTS = [h for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h]
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -123,7 +127,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = os.environ.get('SECRET_KEY', 'changeme')
+SECRET_KEY = os.environ['SECRET_KEY']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -202,6 +206,18 @@ LOGGING = {
 }
 
 BUGZILLA_URL = 'https://bugzilla.yoctoproject.org'
+
+# Expects a proxy that terminates TLS, redirects to HTTPS and sets
+# X-Forwarded-Proto, overwriting the client's.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+SILENCED_SYSTEM_CHECKS = [
+    'security.W008',  # the proxy redirects to HTTPS
+    'security.W005',  # HSTS includeSubDomains and preload are
+    'security.W021',  # the domain owner's call
+]
 
 EMAIL_HOST = 'localhost'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'

@@ -25,8 +25,9 @@ until docker exec $DB mysql -h127.0.0.1 -uroot -ptestingpw -e 'SELECT 1' >/dev/n
     sleep 1
 done
 
-# -Wa shows deprecation warnings, i.e. what breaks on the next Django.
+# Fail on deployment warnings (hence the random key); -Wa shows deprecations.
 docker run --rm --network $NET \
-    -e SECRET_KEY=ci-only \
+    -e SECRET_KEY="$(head -c 48 /dev/urandom | base64)" \
     -e MYSQL_DATABASE=errorreport -e MYSQL_USER=root -e MYSQL_PASSWORD=testingpw \
-    "$IMAGE" python3 -Wa manage.py test --noinput Post
+    "$IMAGE" sh -c 'python3 manage.py check --deploy --fail-level WARNING &&
+        python3 -Wa manage.py test --noinput Post'

@@ -273,6 +273,11 @@ class CSPTest(TestCase):
         self.assertEqual(response['X-Content-Type-Options'], 'nosniff')
         self.assertEqual(response['Referrer-Policy'], 'same-origin')
 
+    def test_hsts_only_over_https_from_proxy(self):
+        self.assertNotIn('Strict-Transport-Security', self.client.get('/Statistics/'))
+        response = self.client.get('/Statistics/', HTTP_X_FORWARDED_PROTO='https')
+        self.assertEqual(response['Strict-Transport-Security'], 'max-age=31536000')
+
     def test_csp_report_only(self):
         with override_settings(CONTENT_SECURITY_POLICY_REPORT_ONLY=True):
             # New client so the middleware picks up the setting
