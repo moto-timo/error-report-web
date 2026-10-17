@@ -20,7 +20,7 @@ def main():
     #print query
     items = BuildFailure.objects.raw(query)
     for item in items:
-        print "Deleting: ", item.id
+        print("Deleting: ", item.id)
         item.delete()
 
 if __name__ == "__main__":

@@ -1,5 +1,7 @@
 import urllib.request, urllib.parse, urllib.error
 import json
+from unittest.mock import patch
+from django.core.management import call_command
 import re
 from django.test import Client, TestCase, override_settings
 from Post.models import BuildFailure, Build
@@ -385,3 +387,22 @@ class LinkBackSubmissionTest(TestCase):
         bf = self._submit("http://example.com/build/42")
         self.assertEqual(bf.BUILD.LINK_BACK, "http://example.com/build/42")
 
+
+
+@patch("Post.management.commands.culldb.time.sleep")
+class CullDbTest(TestCase):
+    def setUp(self):
+        for _ in range(3):
+            Build.objects.create()
+
+    def test_culls_to_size(self, _sleep):
+        call_command("culldb", "1")
+        self.assertEqual(Build.objects.count(), 1)
+
+    def test_zero_culls_everything(self, _sleep):
+        call_command("culldb", "0")
+        self.assertEqual(Build.objects.count(), 0)
+
+    def test_info_deletes_nothing(self, _sleep):
+        call_command("culldb", "--info")
+        self.assertEqual(Build.objects.count(), 3)

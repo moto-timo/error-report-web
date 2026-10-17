@@ -9,44 +9,38 @@
 # Create your views here.
 # vi: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
-from django.core.management.base import BaseCommand, CommandError
-from Post.models import Build, BuildFailure
-from optparse import make_option
+from django.core.management.base import BaseCommand
+from Post.models import Build
 import time
 import sys
 
 class Command(BaseCommand):
     help = 'Culls the database to size in rows'
-    args = '<size>'
-    option_list = BaseCommand.option_list + (
-        make_option('-i',
-                    '--info',
-                    dest='info',
-                    action="store_true",
-                    help='Show the current database size'),
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument('size', nargs='?', type=int,
+                            help='Number of builds to keep')
+        parser.add_argument('-i',
+                            '--info',
+                            action="store_true",
+                            help='Show the current database size')
 
     def handle(self, *args, **options):
         count = Build.objects.count()
 
         if options['info']:
-            print "Current builds table size: %d" % Build.objects.count()
+            print("Current builds table size: %d" % Build.objects.count())
             return
 
-        if len(args) > 0 and args[0]:
-            try:
-                new_size = int(args[0])
-            except ValueError:
-                print "Not a valid size"
-                return
-
+        if options['size'] is not None:
+            new_size = options['size']
 
             num_to_delete = count - new_size
-            print "\nReducing the database size to %d which will DELETE %d rows" % (new_size, num_to_delete)
+            print("\nReducing the database size to %d which will DELETE %d rows" % (new_size, num_to_delete))
             i = 1
             while i != 0:
                 i = i-1
-                print 'Ctrl+c TO CANCEL. Executing in... %d \r' % i,
+                print('Ctrl+c TO CANCEL. Executing in... %d \r' % i, end='')
                 sys.stdout.flush()
                 time.sleep(1)
 
