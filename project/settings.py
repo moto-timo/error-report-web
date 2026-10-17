@@ -177,7 +177,6 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
-    # 'registration',
     )
 
 # A sample logging configuration. The only tangible logging
@@ -211,10 +210,8 @@ LOGGING = {
 
 BUGZILLA_URL = 'https://bugzilla.yoctoproject.org'
 
-ACCOUNT_ACTIVATION_DAYS = 2
 EMAIL_HOST = 'localhost'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
-LOGIN_REDIRECT_URL = '/Errors'
 
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

@@ -411,6 +411,16 @@ class SpecialSubmitterTest(TestCase):
             self.assertContains(client.get("/Errors/Latest/"), "Latest Autobuilder errors")
 
 
+@override_settings(ALLOWED_HOSTS=["testhost"])
+class AccountPagesRemovedTest(TestCase):
+    def test_accounts_urls_are_gone(self):
+        client = Client(HTTP_HOST="testhost")
+        for url in ("/accounts/register/", "/accounts/login/"):
+            self.assertEqual(client.get(url).status_code, 404)
+        # The admin keeps its own login page.
+        self.assertEqual(client.get("/admin/login/").status_code, 200)
+
+
 @patch("Post.management.commands.culldb.time.sleep")
 class CullDbTest(TestCase):
     def setUp(self):

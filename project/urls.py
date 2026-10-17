@@ -6,7 +6,7 @@
 #
 # Licensed under the MIT license, see COPYING.MIT for details
 
-from django.urls import include, re_path
+from django.urls import re_path
 from django.contrib import admin
 from django.views.generic import TemplateView, RedirectView
 from django.conf import settings
@@ -26,7 +26,6 @@ urlpatterns = [
 
     # Uncomment the next line to enable the admin:
     re_path(r'^admin/', admin.site.urls),
-    re_path(r'^accounts/', include('django_registration.backends.activation.urls')),
     re_path(r'^Errors/Latest/$', post_views.search, { 'mode' : results_mode.LATEST }, name= "latest_errors"),
     re_path(r'^Errors/Latest/feed$', LatestEntriesFeed(), name="errors_feed"),
     re_path(r'^Errors/Latest/'+special_submitter+'/$', post_views.search, { 'mode' : results_mode.SPECIAL_SUBMITTER}, name= "latest_autobuilder_errors"),
