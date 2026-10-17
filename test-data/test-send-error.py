@@ -3,7 +3,9 @@
 
 # test/example script for sending data to error-report-web
 
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 import sys
 
 def send_data (url, data_file):

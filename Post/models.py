@@ -7,9 +7,7 @@
 # Licensed under the MIT license, see COPYING.MIT for details
 
 from django.db import models
-from django.db.models.signals import post_save
 from django.conf import settings
-from datetime import datetime
 
 import Levenshtein
 
@@ -117,7 +115,7 @@ class BuildFailure(models.Model):
 
         recalc_lev_distance = kwargs.pop('recalc_lev_distance', False)
 
-        if self.LEV_DISTANCE == None or recalc_lev_distance:
+        if self.LEV_DISTANCE is None or recalc_lev_distance:
             self.LEV_DISTANCE = self.calc_lev_distance()
 
         super(BuildFailure, self).save(*args, **kwargs)

@@ -10,19 +10,17 @@
 # vi: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
 from __future__ import division
-from django.shortcuts import get_object_or_404
 from django.shortcuts import HttpResponse, render
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
-from Post.models import BuildFailure, Build, ErrorType
+from Post.models import BuildFailure, ErrorType
 from Post.parser import Parser
 from django.conf import settings
 from Post.createStatistics import Statistics
-from django.core.paginator import Paginator, EmptyPage
+from django.core.paginator import InvalidPage, Paginator
 from django.core.exceptions import FieldError, ObjectDoesNotExist, RequestDataTooBig
 from django.http import JsonResponse
 from django.db.models import Q
-import json
 import re
 import urllib
 from urllib.parse import urlparse
@@ -76,7 +74,7 @@ def addData(request, return_json=False):
         if return_json:
             response = JsonResponse(result)
         else:
-            if not 'error' in result:
+            if 'error' not in result:
               response = HttpResponse("Your entry can be found here: "+result['build_url'])
             else:
               response = HttpResponse(result['error'])
@@ -252,7 +250,7 @@ def search(request, mode=results_mode.LATEST, **kwargs):
 
     try:
         build_failures = build_failures.page(page)
-    except:
+    except InvalidPage:
         build_failures = build_failures.page(build_failures.num_pages)
 
     context['build_failures'] = build_failures

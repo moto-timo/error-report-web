@@ -1,8 +1,4 @@
-from datetime import datetime, timedelta
-import re
 from django import template
-from django.utils import timezone
-from django.template.defaultfilters import filesizeformat
 from Post.validators import clean_link_back
 
 register = template.Library()

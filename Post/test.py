@@ -1,4 +1,6 @@
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 import json
 from unittest.mock import patch
 from django.core.management import call_command
@@ -387,6 +389,15 @@ class LinkBackSubmissionTest(TestCase):
         bf = self._submit("http://example.com/build/42")
         self.assertEqual(bf.BUILD.LINK_BACK, "http://example.com/build/42")
 
+
+
+@override_settings(ALLOWED_HOSTS=["testhost"])
+class PaginationTest(TestCase):
+    def test_invalid_page_shows_last_page(self):
+        client = Client(HTTP_HOST="testhost")
+        for page in ("999", "abc"):
+            response = client.get("/Errors/Latest/", {"page": page})
+            self.assertEqual(response.status_code, 200)
 
 
 @patch("Post.management.commands.culldb.time.sleep")

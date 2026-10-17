@@ -8,11 +8,9 @@
 #
 # Licensed under the MIT license, see COPYING.MIT for details
 
-import sys, os
 from Post.models import Build, BuildFailure
 from django.db.models import Count
-import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django import utils
 
 class Statistics:
@@ -52,7 +50,7 @@ class Statistics:
         elif string == "NATIVELSBSTRING":
             errors = Build.objects.filter(DATE__range=[enddate, startdate]).values('NATIVELSBSTRING').annotate(dcount=Count('NATIVELSBSTRING')).order_by('-dcount')[:6]
             items = list(errors)
-            return items;
+            return items
         elif string == "TARGET_SYS":
             errors = Build.objects.filter(DATE__range=[enddate, startdate]).values('TARGET_SYS').annotate(dcount=Count('TARGET_SYS')).order_by('-dcount')[:6]
             items = list(errors)

@@ -8,7 +8,8 @@
 #
 # Licensed under the MIT license, see COPYING.MIT for details
 
-import json, re
+import json
+import re
 import bleach
 from Post.models import Build, BuildFailure, ErrorType
 from Post.validators import clean_link_back
@@ -26,7 +27,7 @@ class Parser:
 
         try:
             jsondata = json.loads(self.data)
-        except:
+        except Exception:
              return  { 'error' : 'Invalid json' }
 
         # Bleach data going directly into the database so that
