@@ -1,0 +1,10 @@
+.git
+.env
+.devcontainer
+.ruff_cache
+__pycache__
+*.pyc
+*.sqlite3
+*.patch
+venv
+.venv

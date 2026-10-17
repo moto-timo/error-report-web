@@ -7,3 +7,4 @@
 pull-*/
 venv
 *.sqlite3
+.env
