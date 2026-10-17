@@ -400,6 +400,17 @@ class PaginationTest(TestCase):
             self.assertEqual(response.status_code, 200)
 
 
+@override_settings(ALLOWED_HOSTS=["testhost"])
+class SpecialSubmitterTest(TestCase):
+    def test_tab_shown_only_when_configured(self):
+        client = Client(HTTP_HOST="testhost")
+        self.assertNotContains(client.get("/Errors/Latest/"), "Latest Autobuilder errors")
+        with self.settings(SPECIAL_SUBMITTER={"name": "yocto-autobuilder",
+                                              "title": "Autobuilder",
+                                              "link": "Autobuilder"}):
+            self.assertContains(client.get("/Errors/Latest/"), "Latest Autobuilder errors")
+
+
 @patch("Post.management.commands.culldb.time.sleep")
 class CullDbTest(TestCase):
     def setUp(self):

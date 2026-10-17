@@ -159,6 +159,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'Post.views.common_context',
             ],
        },
     },
@@ -207,12 +208,6 @@ LOGGING = {
         },
     }
 }
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-  'django.contrib.auth.context_processors.auth',
-  'django.core.context_processors.request',
-  'Post.views.common_context',
-)
 
 BUGZILLA_URL = 'https://bugzilla.yoctoproject.org'
 
