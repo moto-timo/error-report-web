@@ -1,5 +1,5 @@
-Django<4.3
-python-Levenshtein
-bleach
-mysqlclient
-django-registration
+Django>=5.2.18,<5.3
+python-Levenshtein==0.27.4
+bleach==6.4.0
+mysqlclient==2.3.0
+django-registration==5.2.1

@@ -87,10 +87,6 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
-USE_L10N = True
-
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
@@ -217,8 +213,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
   'django.core.context_processors.request',
   'Post.views.common_context',
 )
-
-AUTH_PROFILE_MODULE = 'registration.RegistrationProfile'
 
 BUGZILLA_URL = 'https://bugzilla.yoctoproject.org'
 
