@@ -1,8 +1,7 @@
-import unittest
 import urllib.request, urllib.parse, urllib.error
 import json
 import re
-from django.test import Client, override_settings
+from django.test import Client, TestCase, override_settings
 from Post.models import BuildFailure, Build
 from Post.validators import clean_link_back
 
@@ -64,7 +63,7 @@ def compare_db_obj_with_payload(self, bf_object):
 
     f.close()
 
-class SimpleTest(unittest.TestCase):
+class SimpleTest(TestCase):
     def setUp(self):
         # The test clients submit with HTTP_HOST="testhost", so allow it here
         # instead of hardcoding a test host into the project settings.
@@ -248,7 +247,8 @@ class SimpleTest(unittest.TestCase):
         response = self.client.get("/Errors/Details/9898989898/")
         self.assertEqual(response.status_code, 200)
 
-class CSPTest(unittest.TestCase):
+@override_settings(ALLOWED_HOSTS=["testhost"])
+class CSPTest(TestCase):
     def setUp(self):
         self.client = Client(HTTP_HOST="testhost")
 
@@ -307,7 +307,7 @@ class CSPTest(unittest.TestCase):
 
         Build.objects.all().delete()
 
-class LinkBackValidatorTest(unittest.TestCase):
+class LinkBackValidatorTest(TestCase):
 
     def test_allows_http(self):
         self.assertEqual(clean_link_back("http://example.com/build/1"),
@@ -350,7 +350,7 @@ class LinkBackValidatorTest(unittest.TestCase):
         self.assertIsNone(clean_link_back(123))
 
 
-class LinkBackSubmissionTest(unittest.TestCase):
+class LinkBackSubmissionTest(TestCase):
 
     def setUp(self):
         # The test client submits with HTTP_HOST="testhost"; allow it here.
@@ -358,9 +358,6 @@ class LinkBackSubmissionTest(unittest.TestCase):
         override.enable()
         self.addCleanup(override.disable)
         self.client = Client(HTTP_HOST="testhost")
-        # Start from a clean slate; other unittest.TestCase tests commit rows.
-        Build.objects.all().delete()
-        BuildFailure.objects.all().delete()
         with open("test-data/test-payload.json") as f:
             self.base_payload = json.loads(f.read())
 
