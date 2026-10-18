@@ -1,0 +1,63 @@
+{
+  "name": "error-report-web (Django + MySQL)",
+  "dockerComposeFile": [
+    "../docker-compose.yaml",
+    "docker-compose.dev.yml"
+  ],
+  "service": "backend",
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "root",
+
+  // requirements.txt may have changed since the image was built.
+  "postCreateCommand": "pip install --no-cache-dir -r requirements.txt ruff==0.17.0 && python3 manage.py migrate --noinput",
+
+  "forwardPorts": [
+    8000
+  ],
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "charliermarsh.ruff",
+        "batisteo.vscode-django",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-mysql"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": false,
+        "remote.autoForwardPorts": false,
+        // Values from .env.dev.db.
+        "sqltools.connections": [
+          {
+            "mysqlOptions": {
+              "authProtocol": "default",
+              "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "db",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "errorreport",
+            "database": "errorreport",
+            "username": "errorreport",
+            "password": "testingpw"
+          }
+        ],
+        // Format changed lines only.
+        "editor.formatOnSaveMode": "modifications",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/*.pyc": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# Devcontainer override for docker-compose.yaml: runserver on the mounted
+# workspace, MySQL port unpublished (no clash with other dev DBs), no nginx.
+services:
+  backend:
+    command: ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+    restart: "no"
+    volumes:
+      - .:/app:cached
+
+  db:
+    restart: "no"
+    ports: !reset []
+
+  web:
+    profiles: [nginx]
