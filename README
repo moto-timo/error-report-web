@@ -80,10 +80,14 @@ The code for this application is maintained by the Yocto Project.
 
 The latest version can be checked out by git cloning:
 
-  git://git.yoctoproject.org/error-report-web
+  https://git.yoctoproject.org/error-report-web
 
-Contributions are welcome. Please send patches / pull requests to
-yocto@lists.yoctoproject.org with '[error-report-web]' in the subject.
+Contributions are welcome. Please send patches with git send-email to
+yocto-patches@lists.yoctoproject.org with '[error-report-web]' in the
+subject. To set this up in your clone:
+
+  git config format.subjectPrefix "error-report-web][PATCH"
+  git config sendemail.to yocto-patches@lists.yoctoproject.org
 
 To manage the size of your database there is a convenience command:
 
