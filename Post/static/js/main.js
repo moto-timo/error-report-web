@@ -203,18 +203,18 @@ $(document).ready(function(){
       for (var i in cols_hidden){
         if (cols_hidden[i] == clclass){
           $("."+clclass).hide();
-          $("#checkbox-"+clclass).removeAttr("checked");
+          $("#checkbox-"+clclass).prop("checked", false);
         }
       }
     });
   } else {
     /* Disable these columns by default */
     $(".submitter").hide();
-    $("#checkbox-submitter").removeAttr("checked");
+    $("#checkbox-submitter").prop("checked", false);
     $(".build_sys").hide();
-    $("#checkbox-build_sys").removeAttr("checked");
+    $("#checkbox-build_sys").prop("checked", false);
     $(".target_sys").hide();
-    $("#checkbox-target_sys").removeAttr("checked");
+    $("#checkbox-target_sys").prop("checked", false);
   }
 
   $("#errors-table").show();
