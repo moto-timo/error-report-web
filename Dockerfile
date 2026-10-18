@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY requirements.txt /app/
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt gunicorn==26.2.0
 
 # Copy the project code into the container
 COPY . /app/
