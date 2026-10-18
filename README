@@ -41,6 +41,45 @@ In order to send an error report to the server, run the "send-error-report file_
 
 For more information on error reporting and log collection see: http://www.yoctoproject.org/docs/current/dev-manual/dev-manual.html#using-the-error-reporting-tool
 
+Docker
+------
+
+docker-compose.yaml runs a development setup: MySQL, the application in
+gunicorn, and nginx serving it on http://localhost:8080. Its settings are in
+.env.dev.app and .env.dev.db, which hold development-only values.
+
+  docker compose up -d --build
+
+To run the tests in a container, as CI does:
+
+  docker/run-tests.sh
+
+docker-compose.staging.yaml and docker-compose.prod.yaml serve the site over
+HTTPS on ports 80 and 443, with a certificate from Let's Encrypt. Staging uses
+Let's Encrypt's staging server, whose certificates browsers don't trust but
+whose rate limits are generous; production uses the real server. Taking prod
+as the example:
+
+1. Set the real values in .env.prod.app and .env.prod.db (SECRET_KEY,
+   ALLOWED_HOSTS and the database passwords) in a local commit on the server.
+   Never push them.
+2. Get the first certificate. nginx needs it to start, so certbot answers the
+   challenge itself on port 80 (for staging, use docker-compose.staging.yaml
+   and add --test-cert):
+
+     docker compose -f docker-compose.prod.yaml run --rm -p 80:80 \
+         --entrypoint certbot certbot certonly --standalone \
+         --cert-name error-report-web -d errors.example.org \
+         -m you@example.org --agree-tos --no-eff-email
+
+   The certificate is stored in docker/certs, which git ignores.
+3. Start everything:
+
+     docker compose -f docker-compose.prod.yaml up -d --build
+
+The certbot container renews the certificate from the server that issued it,
+and nginx reloads every 6 hours to pick it up.
+
 Content Security Policy
 -----------------------
 

@@ -8,3 +8,4 @@ pull-*/
 venv
 *.sqlite3
 .env
+docker/certs/

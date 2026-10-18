@@ -1,0 +1,55 @@
+# Staging: nginx with Let's Encrypt TLS in front of gunicorn. See README.
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    volumes:
+      - data:/var/lib/mysql
+    env_file:
+      - .env.staging.db
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      timeout: 20s
+      retries: 10
+
+  backend:
+    build: .
+    command: sh -c "python3 manage.py migrate --noinput && python3 manage.py collectstatic --noinput && gunicorn project.wsgi --bind=:8000 --workers=4 --timeout=60"
+    restart: unless-stopped
+    volumes:
+      - static:/app/staticfiles
+    env_file:
+      - .env.staging.app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: nginx:1.30
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx-ssl.conf:/etc/nginx/nginx.conf:ro
+      - static:/usr/share/nginx/html/static:ro
+      - ./docker/certs:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+    # Reload every 6 hours to pick up renewed certificates.
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    depends_on:
+      - backend
+
+  # Renews from whichever Let's Encrypt server issued the certificate.
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./docker/certs:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  data:
+  static:
+  certbot-www:
