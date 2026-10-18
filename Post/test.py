@@ -462,6 +462,16 @@ class SubmittedHtmlTest(TestCase):
         self.assertNotContains(response, "data-content")
         self.assertNotContains(response, "data-html")
 
+    def test_build_fields_are_stored_as_sent_and_escaped(self):
+        client, bf = self.submit(machine="<script>alert(1)</script>")
+        # Stored as sent; escaped on output.
+        self.assertEqual(bf.BUILD.MACHINE, "<script>alert(1)</script>")
+        for url in ("/Errors/Latest/", "/Errors/Details/%d/" % bf.id,
+                    "/Errors/Statistics/MACHINE"):
+            response = client.get(url)
+            self.assertEqual(response.status_code, 200, url)
+            self.assertNotContains(response, "<script>alert", msg_prefix=url)
+
     def test_tooltips_are_not_html(self):
         with open("Post/static/js/main.js") as f:
             self.assertNotRegex(f.read(), r"tooltip\(\{[^}]*html: true")

@@ -10,7 +10,6 @@
 
 import json
 import re
-import bleach
 from Post.models import Build, BuildFailure, ErrorType
 from Post.validators import clean_link_back
 from django.conf import settings
@@ -29,15 +28,6 @@ class Parser:
             jsondata = json.loads(self.data)
         except Exception:
              return  { 'error' : 'Invalid json' }
-
-        # Bleach data going directly into the database so that
-        # displaying in any of the graphing doesn't introduce XSS
-        for key,val in jsondata.items():
-            if key == 'failures':
-                continue
-            if not isinstance(val, str):
-                continue
-            jsondata[key] = bleach.clean(val)
 
         b = Build.objects.create()
         try:
