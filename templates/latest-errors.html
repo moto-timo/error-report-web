@@ -13,7 +13,7 @@
 
 {% block content %}
 
-<div class="row-fluid">
+<div>
   {% if mode == results_mode.SEARCH %}
   <h1 class="page-header">
   {{build_failures.paginator.count}}
@@ -33,46 +33,48 @@
   Similar errors to <a href="{%url 'details' args.fail_id %}">#{{args.fail_id}}</a>
   </h1>
   {% endif %}
-   <div class="navbar">
-    <div class="navbar-inner">
+  <div class="navbar navbar-default">
+    <div class="container-fluid">
       {% if request.GET.filter and not request.GET.query and build_failures and build_failures.paginator.count != 0 %}
-      <span class="brand"> {{build_failures.paginator.count}} errors found filtered by "{{request.GET.filter}}"</span>
+      <p class="navbar-text"> {{build_failures.paginator.count}} errors found filtered by "{{request.GET.filter}}"</p>
       {% endif %}
 
-      <div class="pull-right">
-        <span class="help-inline pagesize-label">Show rows: </span>
-        <select class="input-mini pagesize">
-          {% with "10 25 50 100 150" as list%}
-          {% for i in list.split %}
-          {% if request.session.limit == i|add:0 %}
-          <option value="{{i}}" class="active" selected>{{i}}</option>
-          {% else %}
-          <option value="{{i}}">{{i}}</option>
-          {% endif %}
-          {% endfor %}
-          {% endwith %}
-        </select>
-      </div>
-      <span class="divider-vertical pull-right"></span>
-      <div class="btn-group pull-right">
-
-        <button class="btn dropdown-toggle" data-toggle="dropdown">Edit columns
-          <span class="caret"></span>
-        </button>
-        <ul id='editcol' class="dropdown-menu">
-          {% for col in tablecols %}
-                <li>
-               {# Some columns are required as minimum so disable unchecking #}
-                  <label class="checkbox {%if col.disable_toggle%}muted{%endif%}">
-                    <input type="checkbox" class="col-toggle" id="checkbox-{{col.clclass}}"  value="{{col.clclass}}" checked="checked" {%if col.disable_toggle%}disabled="disabled"{%endif%} data-field="{{col.field}}" />
-                    {{col.name}}
-                  </label>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div> <!-- navbar-inner -->
+      <div class="navbar-form navbar-right">
+        <div class="btn-group">
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Edit columns
+            <span class="caret"></span>
+          </button>
+          <ul id='editcol' class="dropdown-menu dropdown-menu-right">
+            {% for col in tablecols %}
+            <li>
+              {# Some columns are required as minimum so disable unchecking #}
+              <div class="checkbox {%if col.disable_toggle%}disabled{%endif%}">
+                <label>
+                  <input type="checkbox" class="col-toggle" id="checkbox-{{col.clclass}}"  value="{{col.clclass}}" checked="checked" {%if col.disable_toggle%}disabled="disabled"{%endif%} data-field="{{col.field}}" />
+                  {{col.name}}
+                </label>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
         </div>
+        <div class="form-group">
+          <label class="pagesize-label">Show rows:</label>
+          <select class="form-control input-sm pagesize">
+            {% with "10 25 50 100 150" as list%}
+            {% for i in list.split %}
+            {% if request.session.limit == i|add:0 %}
+            <option value="{{i}}" class="active" selected>{{i}}</option>
+            {% else %}
+            <option value="{{i}}">{{i}}</option>
+            {% endif %}
+            {% endfor %}
+            {% endwith %}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
         {% if build_failures or build_failures.paginator.count != 0 %}
         <table class="table table-bordered table-hover" id="errors-table">
           <thead>
@@ -81,11 +83,11 @@
               {% if col.field %}
               {% if  col.clclass in request.GET.type %}
                 <th class="filter-applied {{col.clclass}}" >
-                  <span class="muted">
+                  <span class="text-muted">
                     {{col.name}}
                   </span>
                 &nbsp;
-                <a href="#" id="clear-filter-btn" class="btn btn-mini pull-right" title="Clear filter">&#x2716</a>
+                <a href="#" id="clear-filter-btn" class="btn btn-default btn-xs pull-right" title="Clear filter">&#x2716</a>
 
                 {% elif request.GET.order_by == col.field or request.GET.order_by == "-"|add:col.field %}
                 {# If a sort is applied #}
@@ -118,7 +120,7 @@
                 {% endif %}
 
                 {% else %}
-                <th class="{{col.class}} muted">{{col.name}}</th>
+                <th class="{{col.class}} text-muted">{{col.name}}</th>
                 {% endif %}
 
                 {%endfor%}
@@ -132,7 +134,7 @@
 
                 <td class="error_type"><a href="{{details_url}}">{{ build_fail.BUILD.get_ERROR_TYPE_display }}</a>
                   <a class="filter" href="#" data-filter="{{build_fail.BUILD.ERROR_TYPE}}" data-type="error_type">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.BUILD.get_ERROR_TYPE_display}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.BUILD.get_ERROR_TYPE_display}}"></i>
                   </a>
                 </td>
 
@@ -142,61 +144,61 @@
                         {{ build_fail.RECIPE }}:
                         {{ build_fail.TASK }}</a>
                   <a class="filter" href="#" data-filter=" {{ build_fail.RECIPE }}: {{build_fail.TASK}}" data-type="failure">
-                    <i class="icon-filter hover" title="Filter by {{ build_fail.RECIPE }}: {{build_fail.TASK}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{ build_fail.RECIPE }}: {{build_fail.TASK}}"></i>
                   </a>
                   {% else %}
                   <a href="{{details_url}}">{{ build_fail.TASK }}</a>
                   <a class="filter" href="#" data-filter="{{build_fail.TASK}}" data-type="failure">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.TASK}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.TASK}}"></i>
                   </a>
                   {% endif %}
                 </td>
 
                 <td class="machine"><a href="{{details_url}}">{{ build_fail.BUILD.MACHINE }}</a>
                   <a class="filter"  href="#" data-filter="{{build_fail.BUILD.MACHINE}}" data-type="machine">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.BUILD.MACHINE}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.BUILD.MACHINE}}"></i>
                   </a>
 
                 </td>
                 <td class="distro"><a href="{{details_url}}">{{ build_fail.BUILD.DISTRO }}</a>
                   <a class="filter"  href="#" data-filter="{{build_fail.BUILD.DISTRO}}" data-type="distro">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.BUILD.DISTRO}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.BUILD.DISTRO}}"></i>
                   </a>
 
                 </td>
                 <td class="build_sys"><a href="{{details_url}}">{{ build_fail.BUILD.BUILD_SYS }}</a>
                   <a class="filter"  href="#" data-filter="{{build_fail.BUILD.BUILD_SYS}}" data-type="build_sys">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.BUILD.BUILD_SYS}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.BUILD.BUILD_SYS}}"></i>
                   </a>
 
                 </td>
                 <td class="target_sys"><a href="{{details_url}}">{{ build_fail.BUILD.TARGET_SYS }}</a>
                   <a class="filter"  href="#" data-filter="{{build_fail.BUILD.TARGET_SYS}}" data-type="target_sys">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.BUILD.TARGET_SYS}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.BUILD.TARGET_SYS}}"></i>
                   </a>
 
                 </td>
                 <td class="nativelsbstring"><a href="{{details_url}}">{{ build_fail.BUILD.NATIVELSBSTRING }}</a>
                   <a class="filter"  href="#" data-filter="{{build_fail.BUILD.NATIVELSBSTRING}}" data-type="nativelsbstring">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.BUILD.NATIVELSBSTRING}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.BUILD.NATIVELSBSTRING}}"></i>
                   </a>
 
                 </td>
                 <td class="branch"><a href="{{details_url}}">{{build_fail.BUILD.BRANCH}}</a>
                   <a class="filter"  href="#" data-filter="{{build_fail.BUILD.BRANCH}}" data-type="branch">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.BUILD.BRANCH}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.BUILD.BRANCH}}"></i>
                   </a>
 
                 </td>
                 <td class="commit">
-                  <div class="btn" rel="popover" data-commit="{{ build_fail.BUILD.COMMIT }}">
+                  <div class="btn btn-default" rel="popover" data-commit="{{ build_fail.BUILD.COMMIT }}">
                     {{ build_fail.BUILD.COMMIT|truncatechars:10}}
 
                   </div>
                 </td>
                 <td class="submitter"><a href="{{details_url}}">{{ build_fail.BUILD.NAME }} </a>
                   <a class="filter"  href="#" data-filter="{{build_fail.BUILD.NAME}}" data-type="submitter">
-                    <i class="icon-filter hover" title="Filter by {{build_fail.BUILD.NAME}}"></i>
+                    <i class="glyphicon glyphicon-filter hover" title="Filter by {{build_fail.BUILD.NAME}}"></i>
                   </a>
 
                 </td>
@@ -215,8 +217,8 @@
           </table>
 
           <!-- Show pagination controls -->
-          <div class="pagination">
-            <ul>
+          <div class="clearfix">
+            <ul class="pagination">
               {%if build_failures.has_previous %}
               <li><a href="#" data-page="{{build_failures.previous_page_number}}">&laquo;</a></li>
               {%else%}
@@ -234,9 +236,9 @@
               <li class="disabled"><a href="#">&raquo;</a></li>
               {%endif%}
             </ul>
-            <div class="pull-right">
-              <span class="help-inline pagesize-label">Show rows:</span>
-              <select class="input-mini pagesize">
+            <div class="form-inline pull-right pagesize-bottom">
+              <label class="pagesize-label">Show rows:</label>
+              <select class="form-control input-sm pagesize">
                 {% with "10 25 50 100 150" as list%}
                 {% for i in list.split %}
                 {% if request.session.limit == i|add:0 %}
@@ -251,9 +253,9 @@
           </div>
 
         {% else %}
-        <div class="alert">Sorry no results found</div>
+        <div class="alert alert-warning">Sorry no results found</div>
         {# end if paginator.count != 0 #}
         {% endif %}
-        </div> <!-- row-fluid -->
+        </div>
 
         {% endblock %}

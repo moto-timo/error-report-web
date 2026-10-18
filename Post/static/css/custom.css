@@ -12,11 +12,27 @@ body {
 .logo img {
         height: 25px;
         width: auto !important;
-        margin-left: 1em;
 }
-.logo {
-        padding-top: 4px;
+.navbar-brand.logo {
+        padding-top: 12px;
         padding-bottom: 0px;
+}
+
+@media (min-width: 768px) {
+        .search-query {
+                width: 400px !important;
+        }
+}
+
+/* Narrow screens: the wrapped navbar is too tall to stay fixed. */
+@media (max-width: 767px) {
+        body {
+                padding-top: 0;
+        }
+        .navbar-fixed-top {
+                position: relative;
+                margin: 0 -40px 20px;
+        }
 }
 
 .btn .caret {
@@ -48,6 +64,12 @@ td a:visited {
 
 .well {
 	background-color: transparent;
+	background-image: none;
+}
+
+/* Wrap long log lines, as Bootstrap 2 did. */
+pre {
+	white-space: pre-wrap;
 }
 
 .errorlist {
@@ -57,14 +79,6 @@ td a:visited {
 
 .no-results {
 	margin: 10px 0 0;
-}
-
-.navbar-inner .navbar-search {
-	margin-top: 7px;
-}
-
-.navbar-inner form, .pagination form {
-	margin: 5px 0 0;
 }
 
 .dropdown-menu {
@@ -87,6 +101,7 @@ th a, th span {
 }
 .dl-vertical dd {
 	margin-bottom: 10px;
+	margin-left: 10px;
 }
 .dd a {
 	display: block;
@@ -102,13 +117,12 @@ th a, th span {
 	color: #005580;
 	text-decoration: underline;
 }
-.icon-filter {
+.glyphicon-filter {
 	color: #0088CC;
-	font-size:16px;
 	padding-left:3px;
 }
 
-.icon-filter:hover {
+.glyphicon-filter:hover {
 	color: #005580;
 	cursor: pointer;
 	text-decoration:none;
@@ -146,12 +160,16 @@ th a, th span {
 }
 
 .pagesize-label {
-        padding-top: 5px;
+        font-weight: normal;
+        margin: 0 5px 0 10px;
 }
 
-select.pagesize {
-        margin-top: 5px;
-        margin-bottom: 0px;
+.pagesize-bottom {
+        margin: 20px 0;
+}
+
+.nav-pills {
+        margin-bottom: 20px;
 }
 
 .chart-svg {

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load projecttags %}
 {% block content %}
-<div class="row-fluid">
+<div>
 
   {% if detail == None %}
-    <div class="alert"><p>Build id not found</p></div>
+    <div class="alert alert-warning"><p>Build id not found</p></div>
   {% else %}
   <div class="page-header">
-    <a class="btn pull-left back-btn" href="#">
-      <i class="icon-arrow-left"></i>
+    <a class="btn btn-default pull-left back-btn" href="#">
+      <i class="glyphicon glyphicon-arrow-left"></i>
     </a>
     <h1 class="details-title">
         {% if detail.BUILD.ERROR_TYPE == error_types.RECIPE %}
@@ -16,10 +16,11 @@
         {% endif %}
         {{detail.TASK}} </h1>
   </div>
-  <div class="row span8">
+  <div class="row">
+  <div class="col-md-8">
     <pre>{{detail.ERROR_DETAILS}}</pre>
   </div>
-  <div class="row span3">
+  <div class="col-md-3">
     <div class="well build-details">
       <h2>Error details</h2>
       <dl class="dl-vertical">
@@ -84,11 +85,12 @@
 
       </dl>
       <div>
-        <a class="btn btn-block" target="_blank" href="{{bugzilla_url}}/enter_bug.cgi?classification=__all" >Open a bug</a>
+        <a class="btn btn-default btn-block" target="_blank" href="{{bugzilla_url}}/enter_bug.cgi?classification=__all" >Open a bug</a>
       </div>
     </div>
   </div>
-</div>
+  </div>
  {% endif %}
+</div>
 
 {% endblock %}

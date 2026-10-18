@@ -275,8 +275,8 @@ $(document).ready(function(){
   });
 
   /* Titles hold submitted data: keep them text. */
-  $(".icon-filter").tooltip({ container: 'body' });
+  $(".glyphicon-filter").tooltip({ container: 'body' });
   // initialise the remove filter tooltips
-  $("th .btn-mini").tooltip({ container: 'body', title:'Clear filter' });
+  $("th .btn-xs").tooltip({ container: 'body', title:'Clear filter' });
 
 });
