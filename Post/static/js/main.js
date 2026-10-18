@@ -219,9 +219,16 @@ $(document).ready(function(){
 
   $("#errors-table").show();
 
+  /* Insert the submitted commit as text, not HTML. */
   $('.commit > div').popover({
       placement:'left',
-      html: true
+      html: true,
+      content: function () {
+        var commit = $(this).attr('data-commit');
+        var link = $('<a href="#" class="filter visible" data-type="commit">Filter by commit</a>')
+          .attr('data-filter', commit);
+        return $('<div/>').append($('<span/>').text(commit), $('<p/>').append(link));
+      }
   });
 
   $(".recipe_version a.tooltip-me").tooltip();
@@ -267,8 +274,9 @@ $(document).ready(function(){
     e.stopPropagation();
   });
 
-  $(".icon-filter").tooltip({ container: 'body', html: true });
+  /* Titles hold submitted data: keep them text. */
+  $(".icon-filter").tooltip({ container: 'body' });
   // initialise the remove filter tooltips
-  $("th .btn-mini").tooltip({ container: 'body', html: true, title:'Clear filter' });
+  $("th .btn-mini").tooltip({ container: 'body', title:'Clear filter' });
 
 });

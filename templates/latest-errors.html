@@ -189,12 +189,7 @@
 
                 </td>
                 <td class="commit">
-                  <div class="btn" rel="popover"
-                      data-content='
-                      {{ build_fail.BUILD.COMMIT|escape}}
-                      <p><a href="#" class="filter visible" data-filter="{{build_fail.BUILD.COMMIT}}" data-type="commit" >Filter by commit</a>'
-                      data-html="true"
-                    >
+                  <div class="btn" rel="popover" data-commit="{{ build_fail.BUILD.COMMIT }}">
                     {{ build_fail.BUILD.COMMIT|truncatechars:10}}
 
                   </div>

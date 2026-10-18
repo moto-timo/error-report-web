@@ -432,6 +432,41 @@ class AccountPagesRemovedTest(TestCase):
         self.assertEqual(client.get("/admin/login/").status_code, 200)
 
 
+@override_settings(ALLOWED_HOSTS=["testhost"])
+class SubmittedHtmlTest(TestCase):
+    """Submitted data must only ever reach the page escaped."""
+
+    def submit(self, **fields):
+        with open("test-data/test-payload.json") as f:
+            payload = json.load(f)
+        payload.update(fields)
+        payload['failures'][0]['package'] = '<b>evil</b>-1.0'
+        payload['failures'][0]['task'] = 'do_<b>evil</b>'
+        client = Client(HTTP_HOST="testhost")
+        data = urllib.parse.urlencode({'data': json.dumps(payload)})
+        self.assertEqual(client.post("/ClientPost/", data, "application/json").status_code, 200)
+        return client, BuildFailure.objects.get()
+
+    def test_failure_fields_are_escaped(self):
+        client, bf = self.submit()
+        response = client.get("/Errors/Latest/")
+        self.assertNotContains(response, "<b>evil</b>")
+        self.assertContains(response, "Filter by &lt;b&gt;evil&lt;/b&gt;: do_&lt;b&gt;evil&lt;/b&gt;")
+
+    def test_commit_is_not_in_html_attributes(self):
+        client, bf = self.submit(branch_commit="master: <b>evil</b>")
+        response = client.get("/Errors/Latest/")
+        self.assertNotContains(response, "<b>evil</b>")
+        self.assertContains(response, 'data-commit="&lt;b&gt;evil&lt;/b&gt;"')
+        # With html enabled, Bootstrap inserts these as HTML.
+        self.assertNotContains(response, "data-content")
+        self.assertNotContains(response, "data-html")
+
+    def test_tooltips_are_not_html(self):
+        with open("Post/static/js/main.js") as f:
+            self.assertNotRegex(f.read(), r"tooltip\(\{[^}]*html: true")
+
+
 @patch("Post.management.commands.culldb.time.sleep")
 class CullDbTest(TestCase):
     def setUp(self):
