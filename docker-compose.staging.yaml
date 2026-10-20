@@ -1,14 +1,14 @@
 # Staging: nginx with Let's Encrypt TLS in front of gunicorn. See README.
 services:
   db:
-    image: mysql:8.4
+    image: mariadb:lts
     restart: unless-stopped
     volumes:
       - data:/var/lib/mysql
     env_file:
       - .env.staging.db
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       timeout: 20s
       retries: 10
 

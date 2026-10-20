@@ -44,7 +44,7 @@ For more information on error reporting and log collection see: http://www.yocto
 Docker
 ------
 
-docker-compose.yaml runs a development setup: MySQL, the application in
+docker-compose.yaml runs a development setup: MariaDB, the application in
 gunicorn, and nginx serving it on http://localhost:8080. Its settings are in
 .env.dev.app and .env.dev.db, which hold development-only values.
 

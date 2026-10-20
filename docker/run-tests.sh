@@ -1,5 +1,5 @@
 #!/bin/sh
-# Run the tests in the app image against a throwaway MySQL. Used by CI.
+# Run the tests in the app image against a throwaway MariaDB. Used by CI.
 #
 # SPDX-License-Identifier: MIT
 
@@ -17,8 +17,8 @@ trap 'docker rm -f $DB >/dev/null; docker network rm $NET >/dev/null' EXIT
 # Root so Django can create the test database; testingpw isn't a secret.
 docker run -d --name $DB --network $NET --network-alias db \
     -e MYSQL_ROOT_PASSWORD=testingpw -e MYSQL_DATABASE=errorreport \
-    mysql:8.4 >/dev/null
-until docker exec $DB mysql -h127.0.0.1 -uroot -ptestingpw -e 'SELECT 1' >/dev/null 2>&1; do
+    mariadb:lts >/dev/null
+until docker exec $DB healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1; do
     if [ "$(docker inspect -f '{{.State.Running}}' $DB)" != true ]; then
         docker logs $DB | tail -5; exit 1
     fi

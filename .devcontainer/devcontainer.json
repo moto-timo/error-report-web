@@ -1,5 +1,5 @@
 {
-  "name": "error-report-web (Django + MySQL)",
+  "name": "error-report-web (Django + MariaDB)",
   "dockerComposeFile": [
     "../docker-compose.yaml",
     "docker-compose.dev.yml"
@@ -41,7 +41,7 @@
             "previewLimit": 50,
             "server": "db",
             "port": 3306,
-            "driver": "MySQL",
+            "driver": "MariaDB",
             "name": "errorreport",
             "database": "errorreport",
             "username": "errorreport",
