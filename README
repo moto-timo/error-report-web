@@ -41,6 +41,45 @@ In order to send an error report to the server, run the "send-error-report file_
 
 For more information on error reporting and log collection see: http://www.yoctoproject.org/docs/current/dev-manual/dev-manual.html#using-the-error-reporting-tool
 
+JSON API
+--------
+
+Other tools can query error reports with GET requests under /api/v1/:
+
+  failures/                list of failures, newest first
+  failures/<id>/           one failure, with its log (error_details)
+  failures/<id>/similar/   failures similar to it
+  builds/<id>/             one build and its failures
+
+failures/ and failures/<id>/similar/ take these query parameters:
+
+  recipe, recipe_version, task, build, error_type, machine, distro,
+  target, branch, commit, build_sys, target_sys, nativelsbstring,
+  submitter
+                 exact match
+  since, until   ISO date (2026-10-01) or datetime (2026-10-01T12:00:00Z)
+  order_by       -date (newest first, the default) or date
+  limit, page    page size, 1 to 100 (default 25), and page number
+
+A list looks like:
+
+  {"count": 42, "page": 1, "num_pages": 2,
+   "next": "https://.../api/v1/failures/?page=2", "previous": null,
+   "results": [{"id": 1, "url": ..., "api_url": ..., "task": "do_compile",
+                "recipe": "busybox", "recipe_version": "1.36.1",
+                "build": {"id": 1, "date": ..., "machine": ..., ...}}]}
+
+There is no search of the logs: across the whole database it takes minutes.
+Lists leave out the logs; fetch api_url for them. The submitter's email is
+never returned. Bad parameters give a 400 and unknown ids a 404, with a JSON
+body {"error": "..."}. The staging and prod nginx allow each client 2
+requests a second to /api/, with bursts of up to 20, and answer 429 beyond
+that.
+
+For example, the latest do_compile failures on master:
+
+  curl 'https://errors.yoctoproject.org/api/v1/failures/?task=do_compile&branch=master'
+
 Docker
 ------
 
