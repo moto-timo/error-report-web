@@ -1,3 +1,4 @@
+import datetime
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -494,3 +495,116 @@ class CullDbTest(TestCase):
     def test_info_deletes_nothing(self, _sleep):
         call_command("culldb", "--info")
         self.assertEqual(Build.objects.count(), 3)
+
+
+@override_settings(ALLOWED_HOSTS=["testhost"])
+class ApiTest(TestCase):
+    def setUp(self):
+        self.client = Client(HTTP_HOST="testhost")
+        self.builds = []
+        for i, machine in enumerate(("qemux86-64", "qemuarm64")):
+            build = Build.objects.create(
+                DATE=datetime.datetime(2026, 10, i + 1, tzinfo=datetime.timezone.utc),
+                MACHINE=machine, BRANCH="master", COMMIT="abc%d" % i,
+                TARGET="core-image-minimal", DISTRO="poky",
+                NATIVELSBSTRING="ubuntu-24.04", BUILD_SYS="x86_64-linux",
+                TARGET_SYS="x86_64-poky-linux", NAME="tester",
+                EMAIL="tester@example.com")
+            BuildFailure.objects.create(
+                TASK="do_compile", RECIPE="busybox", RECIPE_VERSION="1.36",
+                ERROR_DETAILS="error: oops %d" % i, BUILD=build)
+            self.builds.append(build)
+
+    def test_list(self):
+        response = self.client.get("/api/v1/failures/")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["count"], 2)
+        # Newest first by default
+        self.assertEqual(data["results"][0]["build"]["machine"], "qemuarm64")
+        self.assertNotIn("error_details", data["results"][0])
+
+    def test_email_not_exposed(self):
+        failure = BuildFailure.objects.first()
+        for url in ("/api/v1/failures/",
+                    "/api/v1/failures/%d/" % failure.id,
+                    "/api/v1/builds/%d/" % failure.BUILD.id):
+            self.assertNotContains(self.client.get(url), "tester@example.com")
+
+    def test_filters(self):
+        def count(**params):
+            return self.client.get("/api/v1/failures/", params).json()["count"]
+        self.assertEqual(count(machine="qemuarm64"), 1)
+        self.assertEqual(count(recipe="busybox", task="do_compile"), 2)
+        self.assertEqual(count(since="2026-10-02"), 1)
+        self.assertEqual(count(until="2026-10-01"), 1)
+        self.assertEqual(count(machine="nope"), 0)
+
+    def test_pagination(self):
+        data = self.client.get("/api/v1/failures/", {"limit": 1}).json()
+        self.assertEqual(data["num_pages"], 2)
+        self.assertIsNone(data["previous"])
+        second = self.client.get(data["next"]).json()
+        self.assertEqual(second["page"], 2)
+        self.assertNotEqual(second["results"][0]["id"], data["results"][0]["id"])
+
+    def test_pagination_with_same_date(self):
+        # Builds often share a DATE; paging must still show each failure once
+        date = self.builds[0].DATE
+        for i in range(5):
+            build = Build.objects.create(
+                DATE=date, MACHINE="qemux86", BRANCH="master", COMMIT="c%d" % i,
+                TARGET="", DISTRO="poky", NATIVELSBSTRING="", BUILD_SYS="",
+                TARGET_SYS="", NAME="tester", EMAIL="")
+            for task in ("do_compile", "do_install"):
+                BuildFailure.objects.create(
+                    TASK=task, RECIPE="busybox", RECIPE_VERSION="1.36",
+                    ERROR_DETAILS="error", BUILD=build)
+        for order_by in ("-date", "date"):
+            ids = []
+            url = "/api/v1/failures/?limit=3&order_by=" + order_by
+            while url:
+                data = self.client.get(url).json()
+                ids += [result["id"] for result in data["results"]]
+                url = data["next"]
+            self.assertEqual(sorted(ids),
+                             sorted(BuildFailure.objects.values_list("id", flat=True)))
+
+    def test_bad_parameters(self):
+        for params in ({"limit": "0"}, {"limit": "1000"}, {"limit": "x"},
+                       {"page": "x"}, {"page": "99"}, {"order_by": "EMAIL"},
+                       {"order_by": "recipe"}, {"order_by": "id"},
+                       {"since": "yesterday"}):
+            response = self.client.get("/api/v1/failures/", params)
+            self.assertEqual(response.status_code, 400, params)
+            self.assertIn("error", response.json())
+
+    def test_detail(self):
+        failure = BuildFailure.objects.order_by("id").first()
+        data = self.client.get("/api/v1/failures/%d/" % failure.id).json()
+        self.assertEqual(data["error_details"], "error: oops 0")
+        self.assertIn("similar_count", data)
+        self.assertEqual(self.client.get(data["similar_url"]).status_code, 200)
+
+    def test_detail_does_not_change_referer(self):
+        failure = BuildFailure.objects.first()
+        self.client.get("/api/v1/failures/%d/" % failure.id)
+        failure.refresh_from_db()
+        self.assertEqual(failure.REFERER, "NOT_VISITED")
+
+    def test_build(self):
+        build = self.builds[0]
+        data = self.client.get("/api/v1/builds/%d/" % build.id).json()
+        self.assertEqual(data["machine"], "qemux86-64")
+        self.assertEqual(len(data["failures"]), 1)
+
+    def test_not_found(self):
+        for url in ("/api/v1/failures/999999/", "/api/v1/failures/999999/similar/",
+                    "/api/v1/builds/999999/"):
+            self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_get_only(self):
+        # As on the site, where the CSRF check refuses a POST before the
+        # view's require_GET can
+        client = Client(HTTP_HOST="testhost", enforce_csrf_checks=True)
+        self.assertEqual(client.post("/api/v1/failures/").status_code, 403)

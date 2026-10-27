@@ -13,6 +13,7 @@ from django.conf import settings
 from Post.views import results_mode
 from Post.feed import LatestEntriesFeed
 from Post import views as post_views
+from Post import api
 admin.autodiscover()
 
 try:
@@ -38,6 +39,10 @@ urlpatterns = [
     re_path(r'^ClientPost/$', post_views.addData),
     re_path(r'^ClientPost/JSON/$', post_views.addData, { 'return_json' : True }),
     re_path(r'^Errors/$', post_views.default, name="main"),
+    re_path(r'^api/v1/failures/$', api.failures, name='api_failures'),
+    re_path(r'^api/v1/failures/(?P<fail_id>\d+)/$', api.failure, name='api_failure'),
+    re_path(r'^api/v1/failures/(?P<fail_id>\d+)/similar/$', api.similar, name='api_similar'),
+    re_path(r'^api/v1/builds/(?P<build_id>\d+)/$', api.build, name='api_build'),
     re_path(r'^Statistics/$', TemplateView.as_view(template_name="home.html"), name = "statistics"),
     re_path(r'^$', RedirectView.as_view(pattern_name="main", permanent=True)),
     # Url for backwards compatibility with old search links
