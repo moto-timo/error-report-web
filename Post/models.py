@@ -80,6 +80,8 @@ class BuildFailure(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=['TASK', 'LEV_DISTANCE'], name='idx_task_lev'),
+            # BUILD too, to join on without reading the (large) row
+            models.Index(fields=['RECIPE', 'BUILD'], name='idx_recipe'),
         ]
 
     def get_similar_fails(self):
