@@ -46,6 +46,10 @@ MAX_UPLOAD_SIZE = "5242880"
 # Tolerance value to determine the distance between similar errors
 SIMILAR_FAILURE_DISTANCE = 10
 
+# Seconds a search may run before it is stopped, so that searching every
+# log can't tie up the database. Only works with MariaDB.
+SEARCH_TIME_LIMIT = 10
+
 # Content Security Policy sent with every response by
 # Post.middleware.ContentSecurityPolicyMiddleware. Each directive maps to a
 # list of sources. All scripts, styles, fonts and images are served locally,

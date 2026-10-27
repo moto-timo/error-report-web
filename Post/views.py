@@ -20,10 +20,15 @@ from Post.createStatistics import Statistics
 from django.core.paginator import InvalidPage, Paginator
 from django.core.exceptions import FieldError, ObjectDoesNotExist, RequestDataTooBig
 from django.http import JsonResponse
+from django.db import OperationalError, connection
 from django.db.models import Q
+from contextlib import contextmanager
 import re
 import urllib
 from urllib.parse import urlparse
+
+# MariaDB's error for a query stopped by max_statement_time
+ER_STATEMENT_TIMEOUT = 1969
 
 class results_mode(object):
     LATEST = 0
@@ -121,6 +126,25 @@ def apply_filter(context, items, name, value):
         items = items.filter(filter_pair)
 
     return items
+
+@contextmanager
+def search_time_limit(enabled=True):
+    """Stop any query run inside after settings.SEARCH_TIME_LIMIT seconds,
+    with an OperationalError whose code is ER_STATEMENT_TIMEOUT. Only
+    MariaDB can do this; elsewhere queries run for as long as they take."""
+    limit = getattr(settings, 'SEARCH_TIME_LIMIT', None)
+    if not (enabled and limit and connection.vendor == 'mysql'
+            and connection.mysql_is_mariadb):
+        yield
+        return
+
+    with connection.cursor() as cursor:
+        cursor.execute("SET SESSION max_statement_time = %s", [limit])
+    try:
+        yield
+    finally:
+        with connection.cursor() as cursor:
+            cursor.execute("SET SESSION max_statement_time = 0")
 
 def default(request):
     if hasattr(settings, "SPECIAL_SUBMITTER"):
@@ -246,23 +270,33 @@ def search(request, mode=results_mode.LATEST, **kwargs):
     # than a query for each item
     items = items.select_related("BUILD").order_by(order_by)
 
-    build_failures = Paginator(items, limit)
-
+    searching = mode == results_mode.SEARCH and "query" in request.GET
     try:
-        build_failures = build_failures.page(page)
-    except InvalidPage:
-        build_failures = build_failures.page(build_failures.num_pages)
+        # The queries run in page() and during render
+        with search_time_limit(searching):
+            build_failures = Paginator(items, limit)
 
-    context['build_failures'] = build_failures
+            try:
+                build_failures = build_failures.page(page)
+            except InvalidPage:
+                build_failures = build_failures.page(build_failures.num_pages)
 
-    # We don't know if the order_by will be valid right up until the sql
-    # query is executed during render so we have to catch an invalid order_by
-    # here
-    try:
-        return render(request, "latest-errors.html", context)
-    except FieldError:
-        items = items.order_by()
-        return render(request, "latest-errors.html", context)
+            context['build_failures'] = build_failures
+
+            # We don't know if the order_by will be valid right up until the sql
+            # query is executed during render so we have to catch an invalid order_by
+            # here
+            try:
+                return render(request, "latest-errors.html", context)
+            except FieldError:
+                items = items.order_by()
+                return render(request, "latest-errors.html", context)
+    except OperationalError as e:
+        if e.args[0] != ER_STATEMENT_TIMEOUT:
+            raise
+        context['search_timeout'] = settings.SEARCH_TIME_LIMIT
+        context['build_failures'] = Paginator(items.none(), limit).page(1)
+        return render(request, "latest-errors.html", context, status=503)
 
 def details(request, fail_id):
     try:

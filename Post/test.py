@@ -5,10 +5,13 @@ import urllib.error
 import json
 from unittest.mock import patch
 from django.core.management import call_command
+from django.core.paginator import Paginator
+from django.db import OperationalError, connection
 import re
 from django.test import Client, TestCase, override_settings
 from Post.models import BuildFailure, Build
 from Post.validators import clean_link_back
+from Post.views import ER_STATEMENT_TIMEOUT, search_time_limit
 
 #Delete the data between tests
 def data_runner (func):
@@ -608,3 +611,39 @@ class ApiTest(TestCase):
         # view's require_GET can
         client = Client(HTTP_HOST="testhost", enforce_csrf_checks=True)
         self.assertEqual(client.post("/api/v1/failures/").status_code, 403)
+
+
+@override_settings(ALLOWED_HOSTS=["testhost"])
+class SearchTimeLimitTest(TestCase):
+    def setUp(self):
+        self.client = Client(HTTP_HOST="testhost")
+
+    def search(self, error):
+        # Fail the search's page(), then let the empty page that replaces it
+        # through
+        empty = Paginator(BuildFailure.objects.none(), 25).page(1)
+        with patch("Post.views.Paginator.page", side_effect=[error, empty]):
+            return self.client.get("/Errors/Search/", {"query": "oops"})
+
+    def test_timeout_shows_message(self):
+        response = self.search(OperationalError(
+            ER_STATEMENT_TIMEOUT,
+            "Query was interrupted: execution time limit 10 sec exceeded"))
+        self.assertContains(response, "took too long", status_code=503)
+        self.assertContains(response, "stopped after 10 seconds", status_code=503)
+
+    def test_other_errors_are_raised(self):
+        with self.assertRaises(OperationalError):
+            self.search(OperationalError(2006, "MySQL server has gone away"))
+
+    def test_limit_stops_query(self):
+        if connection.vendor != "mysql" or not connection.mysql_is_mariadb:
+            self.skipTest("needs MariaDB")
+        with self.settings(SEARCH_TIME_LIMIT=0.1), connection.cursor() as cursor:
+            with self.assertRaises(OperationalError) as cm:
+                with search_time_limit():
+                    cursor.execute("SELECT COUNT(*) FROM seq_1_to_1000000000"
+                                   " WHERE MD5(seq) = 'x'")
+            self.assertEqual(cm.exception.args[0], ER_STATEMENT_TIMEOUT)
+            cursor.execute("SELECT @@max_statement_time")
+            self.assertEqual(cursor.fetchone()[0], 0)

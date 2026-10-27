@@ -16,8 +16,12 @@
 <div>
   {% if mode == results_mode.SEARCH %}
   <h1 class="page-header">
+  {% if search_timeout %}
+  Search for "{{request.GET.query}}" took too long
+  {% else %}
   {{build_failures.paginator.count}}
   errors found for "{{request.GET.query}}" {% if request.GET.filter %} filtered by "{{ request.GET.filter }}"
+  {% endif %}
   {% endif %}
   </h1>
 
@@ -252,6 +256,8 @@
             </div>
           </div>
 
+        {% elif search_timeout %}
+        <div class="alert alert-warning">The search was stopped after {{search_timeout}} seconds. Try more specific words.</div>
         {% else %}
         <div class="alert alert-warning">Sorry no results found</div>
         {# end if paginator.count != 0 #}
